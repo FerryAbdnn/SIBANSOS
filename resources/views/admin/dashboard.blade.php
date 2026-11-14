@@ -1,132 +1,294 @@
 @extends('layouts.admin')
 
-@section('title', 'Dashboard Admin')
-@section('heading', 'Dashboard Admin')
+@section('title', 'Dashboard')
+@section('heading', 'Dashboard')
 
 @section('content')
 
-    {{-- Sambutan --}}
-    <section class="welcome">
-        <div class="welcome-text">
-            <span class="eyebrow light">RINGKASAN PENDATAAN</span>
+    {{-- SAMBUTAN --}}
+    <section class="hero-card">
 
-            <h1>
-                Selamat datang, {{ auth()->user()->nama }} 👋
-            </h1>
+        <div>
+            <span class="eyebrow">Ringkasan pendataan</span>
+
+            <h2>Selamat datang, {{ auth()->user()->nama }}</h2>
 
             <p>
-                Pantau dan kelola data calon penerima bantuan sosial
-                secara terstruktur dan transparan.
+                Pantau dan kelola data calon penerima bantuan sosial secara
+                terstruktur dan transparan.
             </p>
         </div>
 
-        <a href="{{ route('admin.penerima.create') }}" class="btn white">
-            <span>＋</span> Tambah Penerima
+        <a href="{{ route('admin.penerima.create') }}" class="btn">
+            <x-icon name="plus" :size="15" />
+            Tambah Penerima
         </a>
-    </section>
-
-    {{-- Statistik --}}
-    <section class="dashboard-stats">
-
-        <div class="dashboard-stat">
-            <div class="dashboard-stat-icon green">♙</div>
-            <div>
-                <span>Total Penerima</span>
-                <strong>{{ number_format($stats['total']) }}</strong>
-                <small>Seluruh data wilayah tugas</small>
-            </div>
-        </div>
-
-        <div class="dashboard-stat">
-            <div class="dashboard-stat-icon orange">◷</div>
-            <div>
-                <span>Menunggu Verifikasi</span>
-                <strong>{{ number_format($stats['diajukan']) }}</strong>
-                <small>Pengajuan perlu ditinjau</small>
-            </div>
-        </div>
-
-        <div class="dashboard-stat">
-            <div class="dashboard-stat-icon blue">✓</div>
-            <div>
-                <span>Terverifikasi</span>
-                <strong>{{ number_format($stats['terverifikasi']) }}</strong>
-                <small>Data telah disetujui</small>
-            </div>
-        </div>
-
-        <div class="dashboard-stat">
-            <div class="dashboard-stat-icon red">✕</div>
-            <div>
-                <span>Ditolak</span>
-                <strong>{{ number_format($stats['ditolak']) }}</strong>
-                <small>Pengajuan tidak disetujui</small>
-            </div>
-        </div>
 
     </section>
 
-    {{-- Data Penerima Terbaru --}}
-    <section class="panel dashboard-panel">
+    {{-- KPI --}}
+    <div class="kpi-grid">
 
-        <div class="panel-head">
-            <div>
-                <h3>Data Penerima Terbaru</h3>
-                <p>Daftar calon penerima bantuan sosial yang terbaru.</p>
+        <div class="kpi">
+            <div class="kpi-top">
+                <span class="kpi-label">Total penerima</span>
+                <span class="kpi-icon"><x-icon name="users" :size="16" /></span>
             </div>
 
-            <a href="{{ route('admin.penerima.index') }}">
-                Lihat Semua →
-            </a>
+            <strong class="kpi-value">{{ number_format($stats['total'], 0, ',', '.') }}</strong>
+            <small class="kpi-caption">Seluruh data wilayah tugas</small>
         </div>
 
-        <div class="table-wrap">
-            <table>
+        <div class="kpi">
+            <div class="kpi-top">
+                <span class="kpi-label">Terverifikasi</span>
+                <span class="kpi-icon"><x-icon name="check-square" :size="16" /></span>
+            </div>
+
+            <strong class="kpi-value">{{ number_format($stats['terverifikasi'], 0, ',', '.') }}</strong>
+            <small class="kpi-caption">
+                @if ($stats['total'] > 0)
+                    {{ number_format($stats['terverifikasi'] / $stats['total'] * 100, 1, ',', '.') }}% dari total
+                @else
+                    Belum ada data
+                @endif
+            </small>
+        </div>
+
+        <div class="kpi">
+            <div class="kpi-top">
+                <span class="kpi-label">Menunggu verifikasi</span>
+                <span class="kpi-icon amber"><x-icon name="clock" :size="16" /></span>
+            </div>
+
+            <strong class="kpi-value">{{ number_format($stats['diajukan'], 0, ',', '.') }}</strong>
+            <small class="kpi-caption">
+                {{ $stats['diajukan'] > 0 ? 'Perlu tindakan petugas' : 'Tidak ada data menunggu' }}
+            </small>
+        </div>
+
+        <div class="kpi">
+            <div class="kpi-top">
+                <span class="kpi-label">Nonaktif</span>
+                <span class="kpi-icon rose"><x-icon name="x" :size="16" /></span>
+            </div>
+
+            <strong class="kpi-value">{{ number_format($stats['nonaktif'], 0, ',', '.') }}</strong>
+            <small class="kpi-caption">Punya riwayat bantuan</small>
+        </div>
+
+    </div>
+
+    {{-- ALERT --}}
+    @if ($stats['diajukan'] > 0)
+        <div class="alert alert-warning">
+            <x-icon name="alert" :size="16" />
+
+            <div>
+                <strong>{{ $stats['diajukan'] }} data menunggu verifikasi.</strong>
+                Selesaikan verifikasi agar status penerima tetap akurat.
+                <a href="{{ route('admin.pengajuan.index') }}" style="font-weight:700;text-decoration:underline;">
+                    Lihat daftar
+                </a>
+            </div>
+        </div>
+    @endif
+
+    {{-- GRAFIK + PANEL --}}
+    <div class="grid-2" style="margin-bottom:18px;">
+
+        <div class="card">
+            <div class="card-head">
+                <div>
+                    <h3>Penerima per kategori bantuan</h3>
+                    <p>Berdasarkan riwayat penyaluran yang sudah tercatat</p>
+                </div>
+
+                <div class="card-head-actions">
+                    <span class="badge badge-outline">
+                        <x-icon name="calendar" :size="12" />
+                        Semester ini
+                    </span>
+                </div>
+            </div>
+
+            <div class="card-body">
+                @php
+                    $maks = max(1, (int) $sebaranKategori->max('jumlah'));
+                @endphp
+
+                @if ($sebaranKategori->where('jumlah', '>', 0)->count() > 0)
+                    <div class="bars">
+                        @foreach ($sebaranKategori as $s)
+                            <div class="bar-col">
+                                <b>{{ number_format($s->jumlah, 0, ',', '.') }}</b>
+
+                                @php
+                                    $tinggi = (int) $s->jumlah > 0
+                                        ? max(10, round($s->jumlah / $maks * 130))
+                                        : 3;
+                                @endphp
+
+                                <div class="bar {{ (int) $s->jumlah === 0 ? 'empty' : ($loop->first ? 'top' : '') }}"
+                                     style="height: {{ $tinggi }}px;"></div>
+
+                                <span>{{ $s->nama }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="empty">
+                        <div class="empty-icon"><x-icon name="bar-chart" :size="20" /></div>
+                        <strong>Belum ada penyaluran tercatat</strong>
+                        <p>Grafik akan muncul setelah riwayat bantuan dicatat.</p>
+                    </div>
+                @endif
+            </div>
+
+            <div class="card-foot">
+                <x-icon name="info" :size="13" />
+                Total {{ number_format($stats['total'], 0, ',', '.') }} penerima terdata pada wilayah tugas Anda.
+            </div>
+        </div>
+
+        <div class="stack">
+
+            <div class="card">
+                <div class="card-head">
+                    <div>
+                        <h3>Sebaran wilayah</h3>
+                        <p>{{ $sebaranWilayah->count() }} wilayah penugasan</p>
+                    </div>
+                </div>
+
+                <div class="card-body" style="padding-top:6px;padding-bottom:6px;">
+                    <div class="dot-list">
+                        @forelse ($sebaranWilayah as $w)
+                            <div class="dot-row">
+                                <i style="opacity: {{ 1 - $loop->index * 0.2 }};"></i>
+                                <span>{{ $w->label }}</span>
+                                <b>{{ number_format($w->jumlah, 0, ',', '.') }}</b>
+                            </div>
+                        @empty
+                            <div class="dot-row">
+                                <span class="muted">Belum ada data wilayah.</span>
+                            </div>
+                        @endforelse
+                    </div>
+                </div>
+            </div>
+
+            <div class="cta-card">
+                <span class="eyebrow">Menunggu tindakan</span>
+
+                <b>{{ number_format($stats['diajukan'], 0, ',', '.') }} data</b>
+
+                <p>
+                    @if ($stats['diajukan'] > 0)
+                        Perlu ditindaklanjuti petugas
+                    @else
+                        Tidak ada data menunggu
+                    @endif
+                </p>
+
+                <a href="{{ route('admin.penerima.index', ['status' => 'diajukan']) }}" class="btn">
+                    Tinjau data
+                </a>
+            </div>
+
+        </div>
+
+    </div>
+
+    {{-- TABEL DATA MENUNGGU VERIFIKASI --}}
+    <div class="card">
+
+        <div class="card-head">
+            <div>
+                <h3>Data menunggu verifikasi</h3>
+                <p>
+                    @if ($penerimaMenunggu->isEmpty())
+                        Semua data sudah diverifikasi &middot; diurutkan dari yang terbaru
+                    @else
+                        {{ number_format($stats['diajukan'], 0, ',', '.') }} data perlu ditinjau &middot;
+                        diurutkan dari yang terbaru
+                    @endif
+                </p>
+            </div>
+
+            <div class="card-head-actions">
+                <a href="{{ route('admin.penerima.index', ['status' => 'diajukan']) }}" class="link-quiet">
+                    Lihat semua
+                    <x-icon name="arrow-right" :size="13" />
+                </a>
+            </div>
+        </div>
+
+        <div class="tbl-wrap">
+            <table class="tbl">
                 <thead>
                     <tr>
-                        <th>Nama Penerima</th>
-                        <th>Wilayah</th>
-                        <th>Status</th>
-                        <th>Tanggal Daftar</th>
-                        <th>Aksi</th>
+                        <th>Kode</th>
+                        <th>Nama</th>
+                        <th>NIK</th>
+                        <th>RT / RW</th>
+                        <th>Kategori</th>
+                        <th>Terdaftar</th>
+                        <th class="num">Aksi</th>
                     </tr>
                 </thead>
 
                 <tbody>
-                    @forelse ($recent as $p)
+                    @forelse ($penerimaMenunggu as $p)
+                        @php
+                            $kode = 'PNR-' . ($p->created_at?->format('Y') ?? date('Y'))
+                                . '-' . str_pad($p->id_penerima, 5, '0', STR_PAD_LEFT);
+
+                            $rt = $p->wilayah;
+                            $rw = $rt && $rt->id_induk
+                                ? \App\Models\Wilayah::find($rt->id_induk)
+                                : null;
+                        @endphp
+
                         <tr>
-                            <td>
-                                <b>{{ $p->nama }}</b>
-                                <small class="sub">
-                                    NIK
-                                    ••••••••{{ substr(decrypt($p->nik), -4) }}
-                                </small>
-                            </td>
+                            <td class="mono">{{ $kode }}</td>
+
+                            <td class="strong">{{ $p->nama }}</td>
+
+                            <td class="mono">{{ $p->nik_masked }}</td>
+
+                            <td>{{ $rt->label ?? '-' }} / {{ $rw->label ?? '-' }}</td>
 
                             <td>
-                                {{ $p->wilayah->nama ?? '-' }}
-                            </td>
-
-                            <td>
-                                <span class="status {{ $p->status }}">
-                                    {{ ucfirst($p->status) }}
+                                <span class="badge badge-gray">
+                                    {{ $p->jenisBantuan->kategori->nama ?? 'Belum ditetapkan' }}
                                 </span>
                             </td>
 
-                            <td>
-                                {{ $p->created_at->format('d/m/Y') }}
-                            </td>
+                            <td class="muted">{{ $p->created_at?->diffForHumans() ?? '-' }}</td>
 
                             <td>
-                                <a href="{{ route('admin.penerima.show', $p) }}">
-                                    Detail
-                                </a>
+                                <div class="row-actions">
+                                    <a href="{{ route('admin.penerima.show', $p->id_penerima) }}"
+                                       class="icon-action" title="Tinjau data">
+                                        <x-icon name="eye" :size="14" />
+                                    </a>
+
+                                    <a href="{{ route('admin.penerima.edit', $p->id_penerima) }}"
+                                       class="icon-action" title="Edit data">
+                                        <x-icon name="edit" :size="14" />
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="empty">
-                                Belum ada data penerima.
+                            <td colspan="7">
+                                <div class="empty">
+                                    <div class="empty-icon"><x-icon name="check" :size="20" /></div>
+                                    <strong>Tidak ada data menunggu verifikasi</strong>
+                                    <p>Seluruh data penerima pada wilayah tugas Anda sudah ditinjau.</p>
+                                </div>
                             </td>
                         </tr>
                     @endforelse
@@ -134,41 +296,6 @@
             </table>
         </div>
 
-    </section>
-
-    {{-- Kategori Bantuan --}}
-    <section class="panel dashboard-panel">
-
-        <div class="panel-head">
-            <div>
-                <h3>Kategori Bantuan</h3>
-                <p>Ringkasan kategori program bantuan yang tersedia.</p>
-            </div>
-
-            <a href="{{ route('admin.kategori.index') }}">
-                Kelola Kategori →
-            </a>
-        </div>
-
-        <div class="category-grid">
-            @forelse ($kategori as $item)
-                <div class="category-item">
-                    <div class="category-icon">▤</div>
-
-                    <div>
-                        <b>{{ $item->nama_kategori }}</b>
-                        <small>
-                            {{ $item->jenis_count }} jenis bantuan
-                        </small>
-                    </div>
-                </div>
-            @empty
-                <p class="empty">
-                    Belum ada kategori bantuan.
-                </p>
-            @endforelse
-        </div>
-
-    </section>
+    </div>
 
 @endsection

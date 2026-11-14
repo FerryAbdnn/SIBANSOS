@@ -1,127 +1,100 @@
-
 @extends('layouts.admin')
 
 @section('title', 'Edit Riwayat Bantuan')
-@section('heading', 'Edit Riwayat Penyaluran')
+@section('heading', 'Riwayat Penyaluran / Edit')
 
 @section('content')
 
-    <div class="panel form-panel">
+    <div class="page-head">
+        <div class="page-head-text">
+            <h1>Edit Riwayat Penyaluran</h1>
+            <p>Perbarui rekam jejak penyaluran bantuan yang sudah tercatat.</p>
+        </div>
+    </div>
 
-        <div class="panel-head">
+    <div class="card" style="max-width:760px;">
+
+        <div class="card-head">
             <div>
-                <h3>Perbarui rekam jejak penyaluran</h3>
-                <p>
-                    Ubah informasi penyaluran bantuan yang sudah tercatat.
-                </p>
+                <h3>Detail penyaluran</h3>
+                <p>Perubahan tercatat pada log aktivitas.</p>
             </div>
         </div>
 
-        <form
-            method="POST"
-            action="{{ route('admin.riwayat.update', $riwayat) }}"
-        >
+        <form method="POST" action="{{ route('admin.riwayat.update', $riwayat) }}">
             @csrf
             @method('PUT')
 
-            <div class="form-grid">
+            <div class="card-body">
 
-                <div class="span-2">
-                    <label>Pengajuan bantuan (penerima dan program)</label>
+                <div class="form-grid">
 
-                    <select name="id_pengajuan">
-                        <option value="">-- Pilih pengajuan --</option>
+                    <div class="field span-2">
+                        <label for="id_pengajuan">Pengajuan bantuan</label>
 
-                        @if(!$riwayat->id_pengajuan)
-                            <option value="" selected>
-                                Riwayat lama — belum terhubung dengan pengajuan
-                            </option>
-                        @endif
+                        <select class="select" name="id_pengajuan" id="id_pengajuan">
+                            <option value="">Riwayat lama &mdash; belum terhubung dengan pengajuan</option>
 
-                        @foreach($pengajuanList as $a)
-                            @php
-                                $snapshot = $a->data_penerima ?? [];
-                                $nama = data_get(
-                                    $snapshot,
-                                    'nama',
-                                    $a->penerima->nama ?? '-'
-                                );
-                            @endphp
+                            @foreach ($pengajuanList as $a)
+                                @php
+                                    $snapshot = $a->data_penerima ?? [];
 
-                            <option
-                                value="{{ $a->id_pengajuan }}"
-                                @selected(
-                                    old('id_pengajuan', $riwayat->id_pengajuan)
-                                    == $a->id_pengajuan
-                                )
-                            >
-                                {{ $nama }}
-                                — {{ $a->jenisBantuan->nama_program ?? '-' }}
-                                (Pengajuan #{{ $a->id_pengajuan }})
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
+                                    $nama = data_get($snapshot, 'nama', $a->penerima->nama ?? '-');
+                                @endphp
 
-                <div>
-                    <label>Tanggal diterima</label>
+                                <option value="{{ $a->id_pengajuan }}"
+                                    @selected(old('id_pengajuan', $riwayat->id_pengajuan) == $a->id_pengajuan)>
+                                    {{ $nama }} &mdash; {{ $a->jenisBantuan->nama_program ?? '-' }}
+                                    (PGA-{{ str_pad($a->id_pengajuan, 4, '0', STR_PAD_LEFT) }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
 
-                    <input
-                        type="date"
-                        name="tanggal_terima"
-                        value="{{ old(
-                            'tanggal_terima',
-                            $riwayat->tanggal_terima
-                                ? $riwayat->tanggal_terima->format('Y-m-d')
-                                : ''
-                        ) }}"
-                        required
-                    >
-                </div>
+                    <div class="field">
+                        <label for="tanggal_terima">Tanggal diterima <span class="req">*</span></label>
 
-                <div>
-                    <label>Jumlah / nilai</label>
+                        <input class="input" type="date" id="tanggal_terima" name="tanggal_terima"
+                               value="{{ old('tanggal_terima', $riwayat->tanggal_terima?->format('Y-m-d')) }}"
+                               required>
+                    </div>
 
-                    <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        name="jumlah"
-                        value="{{ old('jumlah', $riwayat->jumlah) }}"
-                    >
-                </div>
+                    <div class="field">
+                        <label for="jumlah">Jumlah / nilai</label>
 
-                <div>
-                    <label>Satuan</label>
+                        <div class="input-prefix">
+                            <span>Rp</span>
 
-                    <input
-                        type="text"
-                        name="satuan"
-                        value="{{ old('satuan', $riwayat->satuan) }}"
-                        placeholder="Rupiah, paket, kg"
-                    >
-                </div>
+                            <input type="number" step="1000" min="0" id="jumlah" name="jumlah"
+                                   value="{{ old('jumlah', $riwayat->jumlah) }}">
+                        </div>
+                    </div>
 
-                <div class="span-2">
-                    <label>Keterangan</label>
+                    <div class="field">
+                        <label for="satuan">Satuan</label>
 
-                    <textarea name="keterangan">{{ old(
-                        'keterangan',
-                        $riwayat->keterangan
-                    ) }}</textarea>
+                        <input class="input" type="text" id="satuan" name="satuan"
+                               value="{{ old('satuan', $riwayat->satuan) }}"
+                               placeholder="Rupiah, paket, kg">
+                    </div>
+
+                    <div class="field">
+                        <label for="keterangan">Keterangan</label>
+
+                        <input class="input" type="text" id="keterangan" name="keterangan"
+                               value="{{ old('keterangan', $riwayat->keterangan) }}"
+                               placeholder="Tahap IV / transfer bank">
+                    </div>
+
                 </div>
 
             </div>
 
-            <div class="form-actions">
-                <a
-                    href="{{ route('admin.riwayat.index') }}"
-                    class="btn outline"
-                >
-                    Batal
-                </a>
+            <div class="card-foot" style="justify-content:flex-end;">
+                <a href="{{ route('admin.riwayat.index') }}" class="btn btn-outline">Batal</a>
 
-                <button type="submit" class="btn primary">
+                <button type="submit" class="btn btn-primary">
+                    <x-icon name="check" :size="14" />
                     Simpan Perubahan
                 </button>
             </div>

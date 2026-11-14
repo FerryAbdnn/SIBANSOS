@@ -1,45 +1,32 @@
 @props(['paginator'])
 
 @if ($paginator->hasPages())
-    <div {{ $attributes->merge(['class' => 'pagination-wrapper']) }}>
-        <div class="pagination-info">
+    <div class="pager">
+        <div class="pager-info">
             Menampilkan
-            <strong>{{ $paginator->firstItem() ?? 0 }}</strong>
-            sampai
-            <strong>{{ $paginator->lastItem() ?? 0 }}</strong>
-            dari
-            <strong>{{ $paginator->total() }}</strong>
-            data
+            <b>{{ $paginator->firstItem() ?? 0 }}</b>&ndash;<b>{{ $paginator->lastItem() ?? 0 }}</b>
+            dari <b>{{ number_format($paginator->total(), 0, ',', '.') }}</b> data
         </div>
 
-        <div class="pagination">
-            {{-- Tombol sebelumnya --}}
+        <div class="pager-links">
             @if ($paginator->onFirstPage())
-                <span class="pagination-disabled">‹ Sebelumnya</span>
+                <span class="disabled">&lsaquo;</span>
             @else
-                <a href="{{ $paginator->appends(request()->query())->previousPageUrl() }}">
-                    ‹ Sebelumnya
-                </a>
+                <a href="{{ $paginator->previousPageUrl() }}" rel="prev">&lsaquo;</a>
             @endif
 
-            {{-- Nomor halaman --}}
-            @foreach ($paginator->getUrlRange(1, $paginator->lastPage()) as $page => $url)
+            @foreach ($paginator->getUrlRange(max(1, $paginator->currentPage() - 2), min($paginator->lastPage(), $paginator->currentPage() + 2)) as $page => $url)
                 @if ($page == $paginator->currentPage())
-                    <span class="pagination-active">{{ $page }}</span>
+                    <span class="active">{{ $page }}</span>
                 @else
-                    <a href="{{ $paginator->appends(request()->query())->url($page) }}">
-                        {{ $page }}
-                    </a>
+                    <a href="{{ $url }}">{{ $page }}</a>
                 @endif
             @endforeach
 
-            {{-- Tombol selanjutnya --}}
             @if ($paginator->hasMorePages())
-                <a href="{{ $paginator->appends(request()->query())->nextPageUrl() }}">
-                    Selanjutnya ›
-                </a>
+                <a href="{{ $paginator->nextPageUrl() }}" rel="next">&rsaquo;</a>
             @else
-                <span class="pagination-disabled">Selanjutnya ›</span>
+                <span class="disabled">&rsaquo;</span>
             @endif
         </div>
     </div>

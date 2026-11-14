@@ -1,968 +1,676 @@
-
 @extends('layouts.masyarakat')
 
 @section('title', 'Pengajuan Bantuan')
-@section('heading', 'Formulir Pengajuan Bantuan')
+@section('heading', 'Pengajuan Bantuan')
 
 @section('content')
 
-@php
-    $wilayahRows = collect($wilayah);
-    $rtList = $wilayahRows->where('tipe', 'rt');
-    $rwList = $wilayahRows->where('tipe', 'rw');
+    @php
+        $wilayahRows = collect($wilayah);
+        $rtList = $wilayahRows->where('tipe', 'rt');
+        $rwList = $wilayahRows->where('tipe', 'rw');
 
-    $selectedRtId = old('id_wilayah', $penerima->id_wilayah ?? '');
-    $selectedRt = $rtList->firstWhere('id_wilayah', (int) $selectedRtId);
-    $selectedRwId = old('id_rw', $selectedRt->id_induk ?? '');
+        $selectedRtId = old('id_wilayah', $penerima->id_wilayah ?? '');
+        $selectedRt = $rtList->firstWhere('id_wilayah', (int) $selectedRtId);
+        $selectedRwId = old('id_rw', $selectedRt->id_induk ?? '');
 
-    $sudahTerdaftar = isset($penerima) && $penerima !== null;
-@endphp
+        $sudahTerdaftar = isset($penerima) && $penerima !== null;
+    @endphp
 
-<div class="recipient-form-page">
+    {{-- HEADER --}}
+    <div class="page-head">
+        <div class="page-head-text">
+            <h1>Ajukan Bantuan Sosial</h1>
+            <p>Isi formulir berikut &mdash; data Anda aman dan hanya dilihat petugas</p>
+        </div>
 
-    <div class="recipient-form-heading">
-        <div>
-            <h2>Formulir Pengajuan Bantuan</h2>
-            <p>Lengkapi identitas, kondisi ekonomi, dan dokumen untuk mengajukan bantuan sosial.</p>
+        <div class="page-head-actions">
+            <a href="{{ route('masyarakat.status') }}" class="btn btn-outline">
+                <x-icon name="file" :size="14" />
+                Status Pengajuan
+            </a>
         </div>
     </div>
 
-    @if ($errors->any())
-        <div class="recipient-form-error">
-            <strong>Periksa kembali data yang Anda masukkan.</strong>
-            <ul>
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
+    {{-- STEPPER --}}
+    <div class="card" style="margin-bottom:18px;">
+        <div class="card-body" style="padding:16px 22px;">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;">
 
-    <form
-        method="POST"
-        enctype="multipart/form-data"
-        action="{{ route('masyarakat.pengajuan.store') }}"
-    >
+                @foreach ([
+                    ['Identitas & alamat', 'user'],
+                    ['Kondisi ekonomi', 'wallet'],
+                    ['Dokumen', 'file'],
+                    ['Tinjau & kirim', 'send'],
+                ] as $i => $step)
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:10.5px;font-weight:700;
+                            {{ $i === 0
+                                ? 'background:#15370D;color:#fff;'
+                                : 'background:#F1F2EA;color:#8C9784;' }}">
+                            {{ $i + 1 }}
+                        </span>
+
+                        <span style="font-weight:{{ $i === 0 ? '700' : '500' }};color:{{ $i === 0 ? '#16210F' : '#8C9784' }};">
+                            {{ $step[0] }}
+                        </span>
+                    </div>
+
+                    @if (!$loop->last)
+                        <span style="flex:1;min-width:16px;height:1px;background:#E6E8E2;"></span>
+                    @endif
+                @endforeach
+
+            </div>
+        </div>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data"
+          action="{{ route('masyarakat.pengajuan.store') }}" id="formPengajuan">
+
         @csrf
 
-        {{-- IDENTITAS PENERIMA --}}
-        <div class="recipient-form-card">
+        <div class="grid-side" style="grid-template-columns: minmax(0,1fr) 340px;">
 
-            <div class="recipient-form-section-heading">
-                <div class="recipient-form-section-icon">01</div>
-                <div>
-                    <h3>Identitas Penerima</h3>
-                    <p>
+            <div class="stack">
+
+                {{-- 01 IDENTITAS --}}
+                <div class="form-card" style="margin-bottom:0;">
+                    <div class="form-card-head">
+                        <span class="form-card-num">01</span>
+
+                        <div>
+                            <h3>Identitas pemohon</h3>
+                            <p>
+                                @if ($sudahTerdaftar)
+                                    NIK dan nama terisi otomatis dari akun Anda dan tidak dapat diubah di sini.
+                                @else
+                                    Lengkapi identitas sesuai KTP dan Kartu Keluarga.
+                                @endif
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="form-card-body">
+
                         @if ($sudahTerdaftar)
-                            Identitas menggunakan data yang sudah terdaftar dan tidak dapat diubah melalui formulir ini.
-                        @else
-                            Informasi identitas dasar calon penerima bantuan sosial.
+                            <div class="alert alert-info" style="margin-bottom:16px;">
+                                <x-icon name="lock" :size="15" />
+                                <div style="font-size:11.5px;">
+                                    Identitas terkunci. Untuk memperbaiki NIK atau nama, gunakan
+                                    <a href="{{ route('masyarakat.perbaikan.create') }}" style="font-weight:700;text-decoration:underline;">
+                                        perbaikan data
+                                    </a>.
+                                </div>
+                            </div>
                         @endif
+
+                        <div class="form-grid">
+
+                            <div class="field">
+                                <label for="nik">NIK <span class="req">*</span></label>
+
+                                <input class="input" type="text" id="nik" name="nik"
+                                       maxlength="16" minlength="16" inputmode="numeric"
+                                       pattern="[0-9]{16}"
+                                       value="{{ old('nik', $nik ?? '') }}"
+                                       placeholder="{{ $sudahTerdaftar && !$nik ? 'NIK tersimpan terenkripsi — tidak dapat ditampilkan' : '16 digit NIK' }}"
+                                       {{ $sudahTerdaftar ? 'readonly' : 'required' }}>
+
+                                <small class="hint">
+                                    @if (!$sudahTerdaftar)
+                                        16 digit sesuai KTP.
+                                    @elseif ($nik)
+                                        NIK terdaftar pada akun Anda.
+                                    @else
+                                        NIK tersimpan dalam bentuk terenkripsi dan tidak dapat ditampilkan
+                                        pada perangkat ini. Data tetap tersimpan dan dipakai saat verifikasi.
+                                    @endif
+                                </small>
+
+                                @error('nik')
+                                    <small class="err">{{ $message }}</small>
+                                @enderror
+                            </div>
+
+                            <div class="field">
+                                <label for="no_kk">Nomor Kartu Keluarga <span class="req">*</span></label>
+
+                                <input class="input" type="text" id="no_kk" name="no_kk"
+                                       maxlength="16" minlength="16" inputmode="numeric"
+                                       pattern="[0-9]{16}"
+                                       value="{{ old('no_kk', $penerima->no_kk_decrypted ?? '') }}"
+                                       placeholder="{{ $sudahTerdaftar && !$penerima->no_kk_decrypted ? 'Nomor KK tersimpan terenkripsi — tidak dapat ditampilkan' : '16 digit nomor KK' }}"
+                                       {{ $sudahTerdaftar ? 'readonly' : 'required' }}>
+
+                                <small class="hint">Sesuai Kartu Keluarga.</small>
+
+                                @error('no_kk')
+                                    <small class="err">{{ $message }}</small>
+                                @enderror
+                            </div>
+
+                            <div class="field">
+                                <label for="nama">Nama Lengkap <span class="req">*</span></label>
+
+                                <input class="input" type="text" id="nama" name="nama" maxlength="100"
+                                       value="{{ old('nama', $penerima->nama ?? '') }}"
+                                       placeholder="Sesuai KTP"
+                                       {{ $sudahTerdaftar ? 'readonly' : 'required' }}>
+
+                                @error('nama')
+                                    <small class="err">{{ $message }}</small>
+                                @enderror
+                            </div>
+
+                            <div class="field">
+                                <label for="tanggal_lahir">Tanggal Lahir <span class="req">*</span></label>
+
+                                <input class="input" type="date" id="tanggal_lahir" name="tanggal_lahir"
+                                       value="{{ old('tanggal_lahir', isset($penerima) ? $penerima->tanggal_lahir?->format('Y-m-d') : '') }}"
+                                       {{ $sudahTerdaftar ? 'readonly' : 'required' }}>
+
+                                @error('tanggal_lahir')
+                                    <small class="err">{{ $message }}</small>
+                                @enderror
+                            </div>
+
+                            <div class="field">
+                                <label for="jenis_kelamin">Jenis Kelamin <span class="req">*</span></label>
+
+                                <select class="select" id="jenis_kelamin" name="jenis_kelamin"
+                                        {{ $sudahTerdaftar ? 'disabled' : 'required' }}>
+                                    <option value="">Pilih jenis kelamin</option>
+                                    <option value="L" @selected(old('jenis_kelamin', $penerima->jenis_kelamin ?? '') === 'L')>Laki-laki</option>
+                                    <option value="P" @selected(old('jenis_kelamin', $penerima->jenis_kelamin ?? '') === 'P')>Perempuan</option>
+                                </select>
+
+                                @if ($sudahTerdaftar)
+                                    <input type="hidden" name="jenis_kelamin" value="{{ $penerima->jenis_kelamin }}">
+                                @endif
+
+                                @error('jenis_kelamin')
+                                    <small class="err">{{ $message }}</small>
+                                @enderror
+                            </div>
+
+                            <div class="field">
+                                <label for="nomor_whatsapp">Nomor WhatsApp <span class="req">*</span></label>
+
+                                <input class="input" type="tel" id="nomor_whatsapp" name="nomor_whatsapp"
+                                       maxlength="20"
+                                       value="{{ old('nomor_whatsapp', $penerima->nomor_whatsapp ?? '') }}"
+                                       placeholder="081234567890" required>
+
+                                <small class="hint">Dipakai untuk notifikasi status.</small>
+
+                                @error('nomor_whatsapp')
+                                    <small class="err">{{ $message }}</small>
+                                @enderror
+                            </div>
+
+                            <div class="field span-2">
+                                <label for="alamat">Alamat Lengkap <span class="req">*</span></label>
+
+                                <textarea class="textarea" id="alamat" name="alamat" rows="2" required
+                                          placeholder="Nama jalan, nomor rumah, kelurahan">{{ old('alamat', $penerima->alamat ?? '') }}</textarea>
+
+                                @error('alamat')
+                                    <small class="err">{{ $message }}</small>
+                                @enderror
+                            </div>
+
+                            <div class="field">
+                                <label for="id_rw">RW <span class="req">*</span></label>
+
+                                <select class="select" id="id_rw" name="id_rw" required>
+                                    <option value="">Pilih RW</option>
+
+                                    @foreach ($rwList as $rw)
+                                        <option value="{{ $rw->id_wilayah }}"
+                                            @selected((string) $selectedRwId === (string) $rw->id_wilayah)>
+                                            {{ $rw->nama }}
+                                        </option>
+                                    @endforeach
+                                </select>
+
+                                @error('id_rw')
+                                    <small class="err">{{ $message }}</small>
+                                @enderror
+                            </div>
+
+                            <div class="field">
+                                <label for="id_wilayah">RT <span class="req">*</span></label>
+
+                                <select class="select" id="id_wilayah" name="id_wilayah" required>
+                                    <option value="">Pilih RT</option>
+
+                                    @foreach ($rtList as $rt)
+                                        <option value="{{ $rt->id_wilayah }}"
+                                                data-rw="{{ $rt->id_induk }}"
+                                            @selected((string) $selectedRtId === (string) $rt->id_wilayah)>
+                                            {{ $rt->nama }}
+                                        </option>
+                                    @endforeach
+                                </select>
+
+                                @error('id_wilayah')
+                                    <small class="err">{{ $message }}</small>
+                                @enderror
+                            </div>
+
+                            <div class="field span-2">
+                                <label for="id_jenis">Program bantuan yang dituju <span class="req">*</span></label>
+
+                                <select class="select" id="id_jenis" name="id_jenis" required>
+                                    <option value="">Pilih program bantuan</option>
+
+                                    @foreach ($jenisBantuan as $jenis)
+                                        <option value="{{ $jenis->id_jenis }}"
+                                            @selected((string) old('id_jenis') === (string) $jenis->id_jenis)>
+                                            {{ $jenis->nama_program }}
+                                            @if ($jenis->kategori)
+                                                &mdash; {{ $jenis->kategori->nama }}
+                                            @endif
+                                        </option>
+                                    @endforeach
+                                </select>
+
+                                <small class="hint">
+                                    Pilihan RT akan menyesuaikan RW yang dipilih.
+                                </small>
+
+                                @error('id_jenis')
+                                    <small class="err">{{ $message }}</small>
+                                @enderror
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+
+                {{-- 02 KONDISI EKONOMI --}}
+                <div class="form-card" style="margin-bottom:0;">
+                    <div class="form-card-head">
+                        <span class="form-card-num">02</span>
+
+                        <div>
+                            <h3>Kondisi ekonomi</h3>
+                            <p>Isian terstandar agar calon penerima dapat dibandingkan secara adil.</p>
+                        </div>
+                    </div>
+
+                    <div class="form-card-body">
+
+                        <div class="form-grid">
+
+                            <div class="field">
+                                <label for="penghasilan_bulanan">
+                                    Penghasilan bulanan keluarga <span class="req">*</span>
+                                </label>
+
+                                <div class="input-prefix">
+                                    <span>Rp</span>
+
+                                    <input type="number" id="penghasilan_bulanan" name="penghasilan_bulanan"
+                                           min="0" step="1000"
+                                           value="{{ old('penghasilan_bulanan', $penerima->penghasilan_bulanan ?? '') }}"
+                                           placeholder="1450000" required>
+                                </div>
+
+                                <small class="hint">Rata-rata penghasilan gabungan keluarga.</small>
+
+                                @error('penghasilan_bulanan')
+                                    <small class="err">{{ $message }}</small>
+                                @enderror
+                            </div>
+
+                            <div class="field">
+                                <label for="jumlah_tanggungan">
+                                    Jumlah tanggungan <span class="req">*</span>
+                                </label>
+
+                                <input class="input" type="number" id="jumlah_tanggungan"
+                                       name="jumlah_tanggungan" min="0" max="99"
+                                       value="{{ old('jumlah_tanggungan', $penerima->jumlah_tanggungan ?? 0) }}"
+                                       required>
+
+                                <small class="hint">Anggota keluarga yang menjadi tanggungan.</small>
+
+                                @error('jumlah_tanggungan')
+                                    <small class="err">{{ $message }}</small>
+                                @enderror
+                            </div>
+
+                        </div>
+
+                        <div class="field" style="margin-top:16px;">
+                            <label>Kondisi rumah <span class="req">*</span></label>
+
+                            <div class="tile-group">
+                                @foreach ([
+                                    'permanen' => ['Permanen', 'Dinding bata, atap beton'],
+                                    'semi_permanen' => ['Semi permanen', 'Sebagian kayu / batako'],
+                                    'tidak_layak' => ['Tidak layak', 'Bambu, lantai tanah'],
+                                ] as $value => $item)
+                                    <label class="tile">
+                                        <input type="radio" name="kondisi_rumah" value="{{ $value }}"
+                                            @checked(old('kondisi_rumah', $penerima->kondisi_rumah ?? '') === $value)
+                                            required>
+
+                                        <span class="tile-icon"><x-icon name="home" :size="15" /></span>
+
+                                        <span>
+                                            <strong>{{ $item[0] }}</strong>
+                                            <small>{{ $item[1] }}</small>
+                                        </span>
+
+                                        <span class="tile-check"><x-icon name="check" :size="9" /></span>
+                                    </label>
+                                @endforeach
+                            </div>
+
+                            @error('kondisi_rumah')
+                                <small class="err">{{ $message }}</small>
+                            @enderror
+                        </div>
+
+                        <div class="field" style="margin-top:16px;">
+                            <label>Kondisi khusus</label>
+
+                            <div class="check-grid">
+
+                                <label class="check-card">
+                                    <input type="hidden" name="disabilitas" value="0">
+
+                                    <input type="checkbox" name="disabilitas" value="1"
+                                        @checked((string) old('disabilitas', (int) ($penerima->disabilitas ?? 0)) === '1')>
+
+                                    <span>
+                                        <strong>Ada anggota keluarga disabilitas</strong>
+                                        <small>Menambah prioritas penilaian</small>
+                                    </span>
+                                </label>
+
+                                <label class="check-card">
+                                    <input type="hidden" name="lansia" value="0">
+
+                                    <input type="checkbox" name="lansia" value="1"
+                                        @checked((string) old('lansia', (int) ($penerima->lansia ?? 0)) === '1')>
+
+                                    <span>
+                                        <strong>Ada anggota keluarga lansia</strong>
+                                        <small>Usia 60 tahun ke atas</small>
+                                    </span>
+                                </label>
+
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                {{-- 03 DOKUMEN --}}
+                <div class="form-card" style="margin-bottom:0;">
+                    <div class="form-card-head">
+                        <span class="form-card-num">03</span>
+
+                        <div>
+                            <h3>Dokumen pendukung</h3>
+                            <p>Unggah seluruh dokumen yang diperlukan untuk pengajuan bantuan.</p>
+                        </div>
+                    </div>
+
+                    <div class="form-card-body">
+
+                        @php
+                            $documents = [
+                                ['id' => 'dokumen_ktp', 'title' => 'Foto KTP', 'description' => 'JPG atau PNG · maksimal 2 MB', 'accept' => '.jpg,.jpeg,.png'],
+                                ['id' => 'dokumen_kk', 'title' => 'Kartu Keluarga', 'description' => 'JPG, PNG, atau PDF · maksimal 2 MB', 'accept' => '.jpg,.jpeg,.png,.pdf'],
+                                ['id' => 'dokumen_dtks_p3ke', 'title' => 'Bukti DTKS / P3KE', 'description' => 'JPG, PNG, atau PDF · maksimal 2 MB', 'accept' => '.jpg,.jpeg,.png,.pdf'],
+                                ['id' => 'foto_rumah_depan', 'title' => 'Foto Rumah Depan', 'description' => 'JPG atau PNG · maksimal 2 MB', 'accept' => '.jpg,.jpeg,.png'],
+                                ['id' => 'foto_rumah_dalam', 'title' => 'Foto Bagian Dalam Rumah', 'description' => 'JPG atau PNG · maksimal 2 MB', 'accept' => '.jpg,.jpeg,.png'],
+                                ['id' => 'dokumen_sktm', 'title' => 'Surat Keterangan Tidak Mampu', 'description' => 'JPG, PNG, atau PDF · maksimal 2 MB', 'accept' => '.jpg,.jpeg,.png,.pdf'],
+                            ];
+                        @endphp
+
+                        <div class="upload-grid">
+                            @foreach ($documents as $document)
+                                <div>
+                                    <label for="{{ $document['id'] }}" class="upload-zone">
+                                        <span class="upload-icon">
+                                            <x-icon name="upload" :size="16" />
+                                        </span>
+
+                                        <strong>{{ $document['title'] }}</strong>
+                                        <span style="font-size:11px;color:#8C9784;">{{ $document['description'] }}</span>
+
+                                        <span class="upload-btn">Pilih File</span>
+
+                                        <input type="file" id="{{ $document['id'] }}"
+                                               name="{{ $document['id'] }}"
+                                               accept="{{ $document['accept'] }}"
+                                               data-file-input required>
+                                    </label>
+
+                                    <small id="nama-{{ $document['id'] }}" class="file-note">
+                                        Belum ada file dipilih.
+                                    </small>
+
+                                    @error($document['id'])
+                                        <small class="err">{{ $message }}</small>
+                                    @enderror
+                                </div>
+                            @endforeach
+                        </div>
+
+                        <p class="hint" style="margin-top:14px;">
+                            Pastikan seluruh dokumen terbaca jelas. Bukti DTKS/P3KE digunakan untuk
+                            mendukung pemeriksaan status kesejahteraan, sedangkan foto rumah dan SKTM
+                            digunakan untuk asesmen kondisi tempat tinggal.
+                        </p>
+
+                    </div>
+                </div>
+
+            </div>
+
+            {{-- SIDEBAR --}}
+            <aside class="stack">
+
+                <div class="cta-card">
+                    <span class="eyebrow">Setelah dikirim</span>
+
+                    <b>Pengajuan masuk dengan status Diajukan</b>
+
+                    <p style="margin-top:8px;">
+                        Petugas desa akan memeriksa dokumen dan kondisi ekonomi Anda.
+                        Proses verifikasi biasanya memakan waktu 3&ndash;7 hari kerja.
                     </p>
-                </div>
-            </div>
 
-            <div class="recipient-form-grid">
+                    <div style="display:flex;gap:24px;margin-top:16px;">
+                        <div>
+                            <b style="font-size:16px;">3&ndash;7 hari</b>
+                            <p style="font-size:10.5px;margin-top:2px;">waktu verifikasi</p>
+                        </div>
 
-                <div class="recipient-field">
-                    <label for="nik">NIK <span>*</span></label>
-                    <input
-                        type="text"
-                        id="nik"
-                        name="nik"
-                        maxlength="16"
-                        minlength="16"
-                        inputmode="numeric"
-                        pattern="[0-9]{16}"
-                        value="{{ old('nik', $nik ?? '') }}"
-                        placeholder="Masukkan 16 digit NIK"
-                        {{ $sudahTerdaftar ? 'readonly' : 'required' }}
-                    >
-                    @if (!$sudahTerdaftar)
-                        <small>NIK harus terdiri dari 16 digit angka.</small>
-                    @else
-                        <small>Untuk memperbaiki NIK, gunakan fitur pengajuan perbaikan data.</small>
-                    @endif
-                    @error('nik') <small class="field-error">{{ $message }}</small> @enderror
-                </div>
-
-                <div class="recipient-field">
-                    <label for="no_kk">Nomor Kartu Keluarga (KK) <span>*</span></label>
-                    <input
-                        type="text"
-                        id="no_kk"
-                        name="no_kk"
-                        maxlength="16"
-                        minlength="16"
-                        inputmode="numeric"
-                        pattern="[0-9]{16}"
-                        value="{{ old('no_kk', $penerima->no_kk_decrypted ?? '') }}"
-                        placeholder="Masukkan 16 digit nomor KK"
-                        {{ $sudahTerdaftar ? 'readonly' : 'required' }}
-                    >
-                    @error('no_kk') <small class="field-error">{{ $message }}</small> @enderror
-                </div>
-
-                <div class="recipient-field">
-                    <label for="id_jenis">Program Bantuan yang Dituju <span>*</span></label>
-                    <select id="id_jenis" name="id_jenis" required>
-                        <option value="">Pilih program bantuan</option>
-                        @foreach ($jenisBantuan as $jenis)
-                            <option
-                                value="{{ $jenis->id_jenis }}"
-                                @selected((string) old('id_jenis') === (string) $jenis->id_jenis)
-                            >
-                                {{ $jenis->nama_program }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('id_jenis') <small class="field-error">{{ $message }}</small> @enderror
-                </div>
-
-                <div class="recipient-field">
-                    <label for="nama">Nama Lengkap <span>*</span></label>
-                    <input
-                        type="text"
-                        id="nama"
-                        name="nama"
-                        maxlength="100"
-                        value="{{ old('nama', $penerima->nama ?? '') }}"
-                        placeholder="Masukkan nama lengkap"
-                        {{ $sudahTerdaftar ? 'readonly' : 'required' }}
-                    >
-                    @error('nama') <small class="field-error">{{ $message }}</small> @enderror
-                </div>
-
-                <div class="recipient-field">
-                    <label for="tanggal_lahir">Tanggal Lahir <span>*</span></label>
-                    <input
-                        type="date"
-                        id="tanggal_lahir"
-                        name="tanggal_lahir"
-                        value="{{ old('tanggal_lahir', isset($penerima) ? $penerima->tanggal_lahir?->format('Y-m-d') : '') }}"
-                        {{ $sudahTerdaftar ? 'readonly' : 'required' }}
-                    >
-                    @error('tanggal_lahir') <small class="field-error">{{ $message }}</small> @enderror
-                </div>
-
-                <div class="recipient-field">
-                    <label for="jenis_kelamin">Jenis Kelamin <span>*</span></label>
-                    <select
-                        id="jenis_kelamin"
-                        name="jenis_kelamin"
-                        {{ $sudahTerdaftar ? 'disabled' : 'required' }}
-                    >
-                        <option value="">Pilih jenis kelamin</option>
-                        <option value="L" @selected(old('jenis_kelamin', $penerima->jenis_kelamin ?? '') === 'L')>Laki-laki</option>
-                        <option value="P" @selected(old('jenis_kelamin', $penerima->jenis_kelamin ?? '') === 'P')>Perempuan</option>
-                    </select>
-
-                    @if ($sudahTerdaftar)
-                        <input type="hidden" name="jenis_kelamin" value="{{ $penerima->jenis_kelamin }}">
-                    @endif
-
-                    @error('jenis_kelamin') <small class="field-error">{{ $message }}</small> @enderror
-                </div>
-
-                <div class="recipient-field">
-                    <label for="nomor_whatsapp">Nomor WhatsApp <span>*</span></label>
-                    <input
-                        type="tel"
-                        id="nomor_whatsapp"
-                        name="nomor_whatsapp"
-                        maxlength="20"
-                        value="{{ old('nomor_whatsapp', $penerima->nomor_whatsapp ?? '') }}"
-                        placeholder="Contoh: 081234567890"
-                        required
-                    >
-                    <small>Masukkan nomor WhatsApp yang aktif.</small>
-                    @error('nomor_whatsapp') <small class="field-error">{{ $message }}</small> @enderror
-                </div>
-
-                <div class="recipient-field full">
-                    <label for="alamat">Alamat Lengkap <span>*</span></label>
-                    <textarea
-                        id="alamat"
-                        name="alamat"
-                        rows="3"
-                        placeholder="Masukkan nama jalan, nomor rumah, kelurahan, dan keterangan alamat"
-                        required
-                    >{{ old('alamat', $penerima->alamat ?? '') }}</textarea>
-                    @error('alamat') <small class="field-error">{{ $message }}</small> @enderror
-                </div>
-
-            </div>
-        </div>
-
-        {{-- WILAYAH --}}
-        <div class="recipient-form-card">
-
-            <div class="recipient-form-section-heading">
-                <div class="recipient-form-section-icon">02</div>
-                <div>
-                    <h3>Informasi Wilayah</h3>
-                    <p>Tentukan RT dan RW sesuai alamat tempat tinggal.</p>
-                </div>
-            </div>
-
-            <div class="recipient-form-grid">
-
-                <div class="recipient-field">
-                    <label for="id_rw">RW <span>*</span></label>
-                    <select id="id_rw" name="id_rw" required>
-                        <option value="">Pilih RW</option>
-                        @foreach ($rwList as $rw)
-                            <option
-                                value="{{ $rw->id_wilayah }}"
-                                @selected((string) $selectedRwId === (string) $rw->id_wilayah)
-                            >
-                                {{ $rw->nama }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('id_rw') <small class="field-error">{{ $message }}</small> @enderror
-                </div>
-
-                <div class="recipient-field">
-                    <label for="id_wilayah">RT <span>*</span></label>
-                    <select id="id_wilayah" name="id_wilayah" required>
-                        <option value="">Pilih RT</option>
-                        @foreach ($rtList as $rt)
-                            <option
-                                value="{{ $rt->id_wilayah }}"
-                                data-rw="{{ $rt->id_induk }}"
-                                @selected((string) $selectedRtId === (string) $rt->id_wilayah)
-                            >
-                                {{ $rt->nama }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('id_wilayah') <small class="field-error">{{ $message }}</small> @enderror
-                </div>
-
-            </div>
-
-            <small class="recipient-form-hint">
-                Pilihan RT akan menyesuaikan RW yang dipilih.
-            </small>
-        </div>
-
-        {{-- KONDISI EKONOMI --}}
-        <div class="recipient-form-card">
-
-            <div class="recipient-form-section-heading">
-                <div class="recipient-form-section-icon">03</div>
-                <div>
-                    <h3>Kondisi Ekonomi</h3>
-                    <p>Informasi kondisi ekonomi dan tanggungan calon penerima.</p>
-                </div>
-            </div>
-
-            <div class="recipient-form-grid">
-
-                <div class="recipient-field">
-                    <label for="penghasilan_bulanan">Penghasilan Bulanan <span>*</span></label>
-                    <div class="recipient-input-prefix">
-                        <span>Rp</span>
-                        <input
-                            type="number"
-                            id="penghasilan_bulanan"
-                            name="penghasilan_bulanan"
-                            min="0"
-                            step="1000"
-                            value="{{ old('penghasilan_bulanan', $penerima->penghasilan_bulanan ?? '') }}"
-                            placeholder="Contoh: 1500000"
-                            required
-                        >
+                        <div>
+                            <b style="font-size:16px;">4 tahap</b>
+                            <p style="font-size:10.5px;margin-top:2px;">pemeriksaan</p>
+                        </div>
                     </div>
-                    @error('penghasilan_bulanan') <small class="field-error">{{ $message }}</small> @enderror
                 </div>
 
-                <div class="recipient-field">
-                    <label for="jumlah_tanggungan">Jumlah Tanggungan <span>*</span></label>
-                    <input
-                        type="number"
-                        id="jumlah_tanggungan"
-                        name="jumlah_tanggungan"
-                        min="0"
-                        max="99"
-                        value="{{ old('jumlah_tanggungan', $penerima->jumlah_tanggungan ?? 0) }}"
-                        required
-                    >
-                    @error('jumlah_tanggungan') <small class="field-error">{{ $message }}</small> @enderror
-                </div>
-
-            </div>
-
-            <div class="recipient-field recipient-house-field">
-                <label>Kondisi Rumah <span>*</span></label>
-
-                <div class="recipient-house-options">
-                    @foreach ([
-                        'permanen' => ['Permanen', 'Rumah Sendiri'],
-                        'semi_permanen' => ['Semi Permanen', 'Rumah Sewa, Kosan, DLL'],
-                        'tidak_layak' => ['Tidak Layak', 'Kondisi rumah tidak layak huni'],
-                    ] as $value => $item)
-
-                        <label class="recipient-house-option">
-                            <input
-                                type="radio"
-                                name="kondisi_rumah"
-                                value="{{ $value }}"
-                                @checked(old('kondisi_rumah', $penerima->kondisi_rumah ?? '') === $value)
-                                required
-                            >
-                            <span>
-                                <strong>{{ $item[0] }}</strong>
-                                <small>{{ $item[1] }}</small>
-                            </span>
-                        </label>
-
-                    @endforeach
-                </div>
-
-                @error('kondisi_rumah') <small class="field-error">{{ $message }}</small> @enderror
-            </div>
-
-            <div class="recipient-special-condition">
-                <h4>Kondisi Khusus Penerima</h4>
-                <p>Pilih jika calon penerima termasuk dalam kondisi berikut.</p>
-
-                <div class="recipient-checkbox-grid">
-
-                    <label class="recipient-checkbox-card">
-                        <input type="hidden" name="disabilitas" value="0">
-                        <input
-                            type="checkbox"
-                            name="disabilitas"
-                            value="1"
-                            @checked((string) old('disabilitas', (int) ($penerima->disabilitas ?? 0)) === '1')
-                        >
-                        <span class="recipient-checkbox-content">
-                            <strong>Penyandang Disabilitas</strong>
-                            <small>Calon penerima memiliki kondisi disabilitas.</small>
-                        </span>
-                    </label>
-
-                    <label class="recipient-checkbox-card">
-                        <input type="hidden" name="lansia" value="0">
-                        <input
-                            type="checkbox"
-                            name="lansia"
-                            value="1"
-                            @checked((string) old('lansia', (int) ($penerima->lansia ?? 0)) === '1')
-                        >
-                        <span class="recipient-checkbox-content">
-                            <strong>Lansia</strong>
-                            <small>Calon penerima termasuk kelompok lanjut usia.</small>
-                        </span>
-                    </label>
-
-                </div>
-            </div>
-        </div>
-
-        {{-- DOKUMEN PENDUKUNG --}}
-        <div class="recipient-form-card recipient-document-card">
-
-            <div class="recipient-form-section-heading">
-                <div class="recipient-form-section-icon">04</div>
-                <div>
-                    <h3>Dokumen Pendukung</h3>
-                    <p>Unggah seluruh dokumen yang diperlukan untuk pengajuan bantuan.</p>
-                </div>
-            </div>
-
-            <div class="recipient-document-grid">
-
-                @php
-                    $documents = [
-                        [
-                            'id' => 'dokumen_ktp',
-                            'name' => 'dokumen_ktp',
-                            'title' => 'Foto KTP',
-                            'description' => 'JPG atau PNG · Maksimal 2 MB',
-                            'accept' => '.jpg,.jpeg,.png',
-                        ],
-                        [
-                            'id' => 'dokumen_kk',
-                            'name' => 'dokumen_kk',
-                            'title' => 'Kartu Keluarga (KK)',
-                            'description' => 'JPG, PNG, atau PDF · Maksimal 2 MB',
-                            'accept' => '.jpg,.jpeg,.png,.pdf',
-                        ],
-                        [
-                            'id' => 'dokumen_dtks_p3ke',
-                            'name' => 'dokumen_dtks_p3ke',
-                            'title' => 'Bukti DTKS / P3KE',
-                            'description' => 'JPG, PNG, atau PDF · Maksimal 2 MB',
-                            'accept' => '.jpg,.jpeg,.png,.pdf',
-                        ],
-                        [
-                            'id' => 'foto_rumah_depan',
-                            'name' => 'foto_rumah_depan',
-                            'title' => 'Foto Rumah Tampak Depan',
-                            'description' => 'JPG atau PNG · Maksimal 2 MB',
-                            'accept' => '.jpg,.jpeg,.png',
-                        ],
-                        [
-                            'id' => 'foto_rumah_dalam',
-                            'name' => 'foto_rumah_dalam',
-                            'title' => 'Foto Bagian Dalam Rumah',
-                            'description' => 'JPG atau PNG · Maksimal 2 MB',
-                            'accept' => '.jpg,.jpeg,.png',
-                        ],
-                        [
-                            'id' => 'dokumen_sktm',
-                            'name' => 'dokumen_sktm',
-                            'title' => 'Surat Keterangan Tidak Mampu (SKTM)',
-                            'description' => 'JPG, PNG, atau PDF · Maksimal 2 MB',
-                            'accept' => '.jpg,.jpeg,.png,.pdf',
-                        ],
-                    ];
-                @endphp
-
-                @foreach ($documents as $document)
-                    <div class="recipient-document-upload">
-                        <label for="{{ $document['id'] }}" class="recipient-upload-area">
-                            <span class="recipient-upload-icon">↑</span>
-                            <strong>{{ $document['title'] }}</strong>
-                            <span class="recipient-upload-description">
-                                {{ $document['description'] }}
-                            </span>
-                            <span class="recipient-upload-button">Pilih File</span>
-
-                            <input
-                                type="file"
-                                id="{{ $document['id'] }}"
-                                name="{{ $document['name'] }}"
-                                accept="{{ $document['accept'] }}"
-                                required
-                            >
-                        </label>
-
-                        <small
-                            id="nama-{{ $document['id'] }}"
-                            class="recipient-file-status"
-                        >Belum ada file dipilih.</small>
-
-                        @error($document['name'])
-                            <small class="field-error">{{ $message }}</small>
-                        @enderror
+                <div class="card">
+                    <div class="card-head">
+                        <div>
+                            <h3>Kelengkapan berkas</h3>
+                            <p>Diperbarui saat Anda mengunggah</p>
+                        </div>
                     </div>
-                @endforeach
 
-            </div>
+                    <div class="card-body" style="padding-top:6px;">
 
-            <p class="recipient-form-hint">
-                Pastikan seluruh dokumen terbaca dengan jelas. Bukti DTKS/P3KE
-                digunakan untuk mendukung pemeriksaan status kesejahteraan,
-                sedangkan foto rumah dan SKTM digunakan untuk asesmen kondisi
-                tempat tinggal dan ekonomi calon penerima.
-            </p>
+                        <div class="dot-list" id="checklistBerkas">
+                            <div class="dot-row" data-check="identitas">
+                                <i style="background:#15370D;"></i>
+                                <span>Identitas</span>
+                                <b class="muted" style="font-weight:600;">Lengkap</b>
+                            </div>
 
-        </div>
+                            <div class="dot-row" data-check="alamat">
+                                <i style="background:#15370D;"></i>
+                                <span>Alamat</span>
+                                <b class="muted" style="font-weight:600;">Lengkap</b>
+                            </div>
 
-        {{-- TOMBOL --}}
-        <div class="recipient-form-actions">
-            <a href="{{ route('masyarakat.status') }}" class="recipient-form-cancel">
-                Batal
-            </a>
+                            <div class="dot-row" data-check="ekonomi">
+                                <i style="background:#15370D;"></i>
+                                <span>Kondisi ekonomi</span>
+                                <b class="muted" style="font-weight:600;">Lengkap</b>
+                            </div>
 
-            <button type="submit" class="recipient-form-submit">
-                Kirim Pengajuan
-            </button>
+                            <div class="dot-row" data-check="dokumen_ktp">
+                                <i style="background:#C9CFC3;"></i>
+                                <span>Foto KTP</span>
+                                <b class="muted" style="font-weight:600;">Belum</b>
+                            </div>
+
+                            <div class="dot-row" data-check="dokumen_kk">
+                                <i style="background:#C9CFC3;"></i>
+                                <span>Kartu Keluarga</span>
+                                <b class="muted" style="font-weight:600;">Belum</b>
+                            </div>
+                        </div>
+
+                        <div class="progress">
+                            <i id="progressBerkas" style="width:60%;"></i>
+                        </div>
+
+                        <small class="hint" id="progressLabel">3 dari 5 berkas lengkap</small>
+
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div style="display:flex;gap:9px;">
+                            <span class="ic" style="width:28px;height:28px;border-radius:8px;background:#EAF2E4;color:#15370D;display:grid;place-items:center;flex:none;">
+                                <x-icon name="lock" :size="14" />
+                            </span>
+
+                            <p style="font-size:11.5px;color:#6B7764;line-height:1.6;">
+                                Dengan mengirim pengajuan, Anda menyetujui data pribadi digunakan
+                                untuk pendataan bantuan sosial sesuai UU No. 27 Tahun 2022.
+                                Data tidak dibagikan ke pihak lain tanpa persetujuan.
+                            </p>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-block" style="margin-top:14px;">
+                            <x-icon name="send" :size="14" />
+                            Kirim Pengajuan
+                        </button>
+
+                        <small class="hint" style="text-align:center;display:block;">
+                            Anda dapat menarik pengajuan selama status masih Diajukan.
+                        </small>
+                    </div>
+                </div>
+
+            </aside>
+
         </div>
 
     </form>
-</div>
-
-<style>
-/* =========================================
-   RECIPIENT FORM PAGE
-========================================= */
-
-.recipient-form-page {
-    width: 100%;
-    max-width: 1180px;
-    margin: 0 auto;
-    color: #20391a;
-}
-
-/* =========================================
-   FORM CARD
-========================================= */
-
-.recipient-form-card {
-    background: #fff;
-    border: 1px solid #e5eadd;
-    border-radius: 14px;
-    padding: 24px;
-    margin-bottom: 18px;
-}
-
-/* =========================================
-   FORM GRID
-========================================= */
-
-.recipient-form-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 18px;
-}
-
-.recipient-field {
-    min-width: 0;
-}
-
-.recipient-field.full {
-    grid-column: 1 / -1;
-}
-
-/* =========================================
-   FORM LABEL
-========================================= */
-
-.recipient-field label {
-    display: block;
-    margin-bottom: 8px;
-    font-size: 13px;
-    font-weight: 600;
-}
-
-.recipient-field label span {
-    color: #20391a;
-}
-
-/* =========================================
-   FORM INPUT
-========================================= */
-
-.recipient-field input:not([type="checkbox"]):not([type="radio"]),
-.recipient-field select,
-.recipient-field textarea {
-    width: 100%;
-    min-height: 43px;
-    border: 1px solid #dce3d6;
-    border-radius: 8px;
-    padding: 10px 12px;
-    background: #fff;
-    color: #20391a;
-    font: inherit;
-    box-sizing: border-box;
-}
-
-.recipient-field textarea {
-    resize: vertical;
-}
-
-.recipient-field input:focus,
-.recipient-field select:focus,
-.recipient-field textarea:focus {
-    outline: none;
-    border-color: #174f37;
-    box-shadow: 0 0 0 3px rgba(23, 79, 55, .10);
-}
-
-/* =========================================
-   FORM HINT & ERROR
-========================================= */
-
-.recipient-field > small,
-.recipient-form-hint {
-    display: block;
-    margin-top: 7px;
-    color: #7b8875;
-    font-size: 12px;
-}
-
-.recipient-field .field-error,
-.field-error {
-    color: #dc2626;
-}
-
-/* =========================================
-   PENGHASILAN BULANAN
-========================================= */
-
-.recipient-input-prefix {
-    display: flex;
-    align-items: center;
-    height: 43px;
-    min-height: 43px;
-    box-sizing: border-box;
-}
-
-.recipient-input-prefix span {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    padding: 0 13px;
-    background: transparent;
-    color: #64748b;
-    border-right: 1px solid #e2e8f0;
-    font-weight: 500;
-}
-
-.recipient-input-prefix input {
-    height: 100%;
-    min-height: 0;
-    margin-top: auto;
-    padding: 12px;
-    line-height: normal;
-    box-sizing: border-box;
-    border: none !important;
-    outline: none;
-    background: transparent;
-}
-
-.recipient-input-prefix:focus-within {
-    border-color: inherit;
-    box-shadow: none;
-    outline: none;
-}
-
-.recipient-input-prefix input:focus {
-    border: none !important;
-    box-shadow: none !important;
-    outline: none !important;
-}
-
-/* =========================================
-   KONDISI RUMAH
-========================================= */
-
-.recipient-house-field {
-    margin-top: 20px;
-}
-
-.recipient-house-options {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 12px;
-}
-
-.recipient-house-option {
-    min-height: 85px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 14px;
-    box-sizing: border-box;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    background: #fff;
-    cursor: pointer;
-}
-
-.recipient-house-option:hover {
-    border-color: #9caf98;
-}
-
-.recipient-house-option:has(input:checked) {
-    border-color: #174f37;
-    background: #f7faf6;
-}
-
-.recipient-house-option input {
-    flex-shrink: 0;
-    width: 16px;
-    height: 16px;
-    margin: 0;
-    accent-color: #174f37;
-}
-
-.recipient-house-option input:focus,
-.recipient-house-option input:focus-visible,
-.recipient-house-option input:active {
-    outline: none !important;
-    box-shadow: none !important;
-}
-
-.recipient-house-option span {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.recipient-house-option strong {
-    color: #20391a;
-    font-size: 13px;
-    line-height: 1.4;
-}
-
-.recipient-house-option small {
-    color: #64748b;
-    font-size: 11px;
-    line-height: 1.4;
-}
-
-/* =========================================
-   DOKUMEN PENDUKUNG
-========================================= */
-
-.recipient-document-card {
-    padding: 24px;
-}
-
-.recipient-document-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px;
-}
-
-.recipient-document-upload {
-    min-width: 0;
-}
-
-.recipient-document-upload input[type="file"] {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-}
-
-.recipient-upload-area:focus-within {
-    outline: 2px solid #174f37;
-    outline-offset: 3px;
-}
-
-/* Kotak upload */
-
-.recipient-upload-area {
-    min-height: 150px;
-    padding: 20px 14px;
-    border: 1.5px dashed #a9bca1;
-    border-radius: 11px;
-    background: #f0f4ed;
-
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-
-    text-align: center;
-    cursor: pointer;
-    box-sizing: border-box;
-
-    transition: background .2s ease, border-color .2s ease;
-}
-
-.recipient-upload-area:hover {
-    background: #e8f0e5;
-    border-color: #174f37;
-}
-
-/* Ikon upload */
-
-.recipient-upload-icon {
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 50%;
-    background: #ffffff;
-    color: #174f37;
-}
-
-.recipient-upload-icon svg {
-    width: 19px;
-    height: 19px;
-}
-
-/* Teks upload */
-
-.recipient-upload-area strong {
-    color: #20391a;
-    font-size: 12px;
-    font-weight: 700;
-    line-height: 1.4;
-}
-
-.recipient-upload-area small {
-    color: #6f7e69;
-    font-size: 10px;
-    line-height: 1.4;
-}
-
-/* Nama file */
-
-.recipient-file-status {
-    display: block;
-    margin-top: 9px;
-    color: #879381;
-    font-size: 11px;
-    line-height: 1.5;
-    overflow-wrap: anywhere;
-}
-
-.recipient-file-status.recipient-file-existing {
-    color: #287346;
-    font-weight: 600;
-}
-
-/* Error upload */
-
-.recipient-document-upload .field-error {
-    display: block;
-    margin-top: 6px;
-    color: #dc2626;
-    font-size: 12px;
-}
-
-/* Keterangan dokumen */
-
-.recipient-document-card .recipient-form-hint {
-    margin-top: 12px;
-    line-height: 1.5;
-}
-
-/* Responsive */
-
-@media (max-width: 700px) {
-    .recipient-document-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .recipient-upload-area {
-        min-height: 140px;
-    }
-}
-
-/* =========================================
-   FORM ACTIONS
-========================================= */
-
-.recipient-form-actions {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 12px;
-    margin: 20px 0 30px;
-}
-
-/* =========================================
-   RESPONSIVE
-========================================= */
-
-@media (max-width: 700px) {
-
-    .recipient-form-card {
-        padding: 17px;
-    }
-
-    .recipient-form-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .recipient-field.full {
-        grid-column: auto;
-    }
-
-    .recipient-house-options {
-        flex-direction: column;
-    }
-
-    .recipient-document-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .recipient-form-actions {
-        flex-direction: column-reverse;
-    }
-
-    .recipient-form-actions > * {
-        width: 100%;
-        text-align: center;
-        box-sizing: border-box;
-    }
-
-}
-</style>
-
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-
-    // =====================================
-    // FILTER RT BERDASARKAN RW
-    // =====================================
-
-    const rwSelect = document.getElementById('id_rw');
-    const rtSelect = document.getElementById('id_wilayah');
-
-    function filterRT() {
-        const selectedRW = rwSelect.value;
-        let selectedStillValid = false;
-
-        Array.from(rtSelect.options).forEach(function (option, index) {
-            if (index === 0) return;
-
-            const match = option.dataset.rw === selectedRW;
-
-            option.hidden = !match;
-
-            if (match && option.selected) {
-                selectedStillValid = true;
-            }
-        });
-
-        if (!selectedStillValid) {
-            rtSelect.value = '';
-        }
-    }
-
-    rwSelect.addEventListener('change', filterRT);
-
-    filterRT();
-
-
-    // =====================================
-    // MENAMPILKAN NAMA FILE
-    // =====================================
-
-    function showFileName(inputId, outputId) {
-        const input = document.getElementById(inputId);
-        const output = document.getElementById(outputId);
-
-        if (!input || !output) return;
-
-        input.addEventListener('change', function () {
-
-            if (this.files && this.files.length > 0) {
-                output.textContent = '✓ ' + this.files[0].name;
-
-                output.classList.add(
-                    'recipient-file-existing'
-                );
-
-            } else {
-                output.textContent = 'Belum ada file dipilih.';
-
-                output.classList.remove(
-                    'recipient-file-existing'
-                );
-            }
-        });
-    }
-
-    showFileName('dokumen_ktp', 'nama-dokumen_ktp');
-    showFileName('dokumen_kk', 'nama-dokumen_kk');
-    showFileName('dokumen_dtks_p3ke', 'nama-dokumen_dtks_p3ke');
-    showFileName('foto_rumah_depan', 'nama-foto_rumah_depan');
-    showFileName('foto_rumah_dalam', 'nama-foto_rumah_dalam');
-    showFileName('dokumen_sktm', 'nama-dokumen_sktm');
-
-});
-</script>
 
 @endsection
+
+@push('scripts')
+<script>
+    (function () {
+        // Filter pilihan RT berdasarkan RW.
+        var rw = document.getElementById('id_rw');
+        var rt = document.getElementById('id_wilayah');
+
+        if (rw && rt) {
+            var semuaRt = Array.prototype.slice.call(rt.options).map(function (o) {
+                return { value: o.value, text: o.text, rw: o.getAttribute('data-rw') };
+            });
+
+            function saringRt() {
+                var dipilih = rw.value;
+                var terpilih = rt.value;
+
+                rt.innerHTML = '';
+
+                semuaRt.forEach(function (o) {
+                    if (!o.value) {
+                        rt.appendChild(new Option(o.text, o.value));
+                        return;
+                    }
+
+                    if (!dipilih || o.rw === dipilih) {
+                        var opt = new Option(o.text, o.value);
+                        opt.setAttribute('data-rw', o.rw);
+                        rt.appendChild(opt);
+                    }
+                });
+
+                rt.value = terpilih;
+            }
+
+            rw.addEventListener('change', function () {
+                rt.value = '';
+                saringRt();
+            });
+
+            saringRt();
+        }
+
+        // Nama file terpilih + kelengkapan berkas.
+        var inputs = document.querySelectorAll('[data-file-input]');
+        var lengkap = 3;
+        var total = 5;
+
+        function segarkan() {
+            var persen = Math.round((lengkap / total) * 100);
+
+            var bar = document.getElementById('progressBerkas');
+            var label = document.getElementById('progressLabel');
+
+            if (bar) { bar.style.width = persen + '%'; }
+            if (label) { label.textContent = lengkap + ' dari ' + total + ' berkas lengkap'; }
+        }
+
+        inputs.forEach(function (input) {
+            input.addEventListener('change', function () {
+                var catatan = document.getElementById('nama-' + input.id);
+                var baris = document.querySelector('[data-check="' + input.id + '"]');
+                var sudah = baris && baris.dataset.done === '1';
+
+                if (input.files && input.files.length) {
+                    if (catatan) {
+                        catatan.textContent = input.files[0].name + ' · '
+                            + Math.round(input.files[0].size / 1024) + ' KB';
+                        catatan.classList.add('ok');
+                    }
+
+                    if (baris && !sudah) {
+                        baris.dataset.done = '1';
+                        baris.querySelector('i').style.background = '#15370D';
+                        baris.querySelector('b').textContent = 'Terunggah';
+                        lengkap = Math.min(total, lengkap + 1);
+                        segarkan();
+                    }
+                } else if (catatan) {
+                    catatan.textContent = 'Belum ada file dipilih.';
+                    catatan.classList.remove('ok');
+                }
+            });
+        });
+
+        segarkan();
+    })();
+</script>
+@endpush

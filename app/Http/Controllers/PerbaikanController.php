@@ -61,18 +61,23 @@ class PerbaikanController extends Controller
 
         $data = $request->validate([
             'alamat' => 'nullable|string',
+            'nomor_whatsapp' => 'nullable|string|max:20',
             'penghasilan_bulanan' => 'nullable|numeric|min:0',
             'jumlah_tanggungan' => 'nullable|integer|min:0',
             'kondisi_rumah' => 'nullable|in:permanen,semi_permanen,tidak_layak',
+            'alasan' => 'nullable|string|max:1000',
         ]);
 
         $data = array_filter(
             $data,
-            fn($value) => $value !== null
+            fn($value) => $value !== null && $value !== ''
         );
 
+        // Alasan bukan kolom penerima, hanya catatan pendukung usulan.
+        $perubahan = array_diff_key($data, ['alasan' => null]);
+
         abort_if(
-            !$data,
+            !$perubahan,
             422,
             'Isi minimal satu perubahan.'
         );
@@ -145,7 +150,12 @@ class PerbaikanController extends Controller
                     'kondisi_rumah',
                 ]);
 
-                $penerima->update($pengajuan->data_usulan);
+                $usulan = $pengajuan->data_usulan;
+
+                // Kolom yang bukan atribut penerima tidak boleh ikut diperbarui.
+                unset($usulan['alasan']);
+
+                $penerima->update($usulan);
 
                 $dataBaru = $penerima->fresh()->only([
                     'alamat',

@@ -1,220 +1,351 @@
 @extends('layouts.masyarakat')
 
 @section('title', 'Perbaikan Data')
+@section('heading', 'Perbaikan Data')
 
 @section('content')
 
-    <x-page-header title="Pengajuan Perbaikan Data"
-        description="Ajukan perubahan apabila terdapat informasi pada data Anda yang sudah tidak sesuai." />
+    @php
+        $labelUsulan = [
+            'alamat' => 'Alamat',
+            'nomor_whatsapp' => 'No. WhatsApp',
+            'penghasilan_bulanan' => 'Penghasilan',
+            'jumlah_tanggungan' => 'Tanggungan',
+            'kondisi_rumah' => 'Kondisi rumah',
+        ];
+
+        $nikWarga = $penerima?->nik_decrypted;
+
+        $menunggu = $items->where('status', 'menunggu')->count();
+    @endphp
+
+    <div class="page-head">
+        <div class="page-head-text">
+            <h1>Ajukan Perbaikan Data</h1>
+            <p>Usulan perubahan diperiksa admin sebelum berlaku</p>
+        </div>
+    </div>
 
     @if (!$penerima)
-
-        <div class="panel">
-            <div class="empty">
-                <h3>Data penerima belum tersedia</h3>
+        <div class="card">
+            <div class="empty" style="padding:56px 24px;">
+                <div class="empty-icon"><x-icon name="edit" :size="22" /></div>
+                <strong>Data penerima belum tersedia</strong>
                 <p>Anda perlu mengajukan pendataan bantuan terlebih dahulu.</p>
-                <a href="{{ route('masyarakat.pengajuan.create') }}" class="btn primary">
+
+                <a href="{{ route('masyarakat.pengajuan.create') }}" class="btn btn-primary">
                     Ajukan Bantuan
                 </a>
             </div>
         </div>
-
     @else
+        <div class="alert alert-warning">
+            <x-icon name="alert" :size="16" />
 
-        <div class="panel">
-            <h3>Data Anda Saat Ini</h3>
-            <p class="muted">
-                Periksa data berikut sebelum mengajukan perubahan.
-            </p>
-
-            <div class="detail-grid">
-                <div>
-                    <small>Nama Lengkap</small>
-                    <b>{{ $penerima->nama }}</b>
-                </div>
-
-                <div>
-                    <small>Alamat Saat Ini</small>
-                    <b>{{ $penerima->alamat }}</b>
-                </div>
-
-                <div>
-                    <small>Penghasilan Bulanan</small>
-                    <b>Rp {{ number_format((float) $penerima->penghasilan_bulanan, 0, ',', '.') }}</b>
-                </div>
-
-                <div>
-                    <small>Jumlah Tanggungan</small>
-                    <b>{{ $penerima->jumlah_tanggungan }} orang</b>
-                </div>
-
-                <div>
-                    <small>Kondisi Rumah</small>
-                    <b>{{ ucwords(str_replace('_', ' ', $penerima->kondisi_rumah)) }}</b>
-                </div>
-
-                <div>
-                    <small>Status Pendataan</small>
-                    <span class="status {{ $penerima->status }}">
-                        {{ ucfirst($penerima->status) }}
-                    </span>
-                </div>
+            <div>
+                <strong>Perubahan tidak langsung berlaku.</strong>
+                Admin akan memeriksa usulan Anda terlebih dahulu. Selama menunggu,
+                data lama tetap digunakan pada seluruh perhitungan.
             </div>
         </div>
 
-        <div class="panel form-panel">
-            <div class="panel-head">
-                <div>
-                    <h3>Formulir Perubahan Data</h3>
-                    <p>Isi hanya bagian yang ingin Anda ubah. Bagian kosong tidak akan diubah.</p>
-                </div>
-            </div>
+        <div class="grid-side" style="grid-template-columns: minmax(0,1fr) 340px;">
 
-            @if ($errors->any())
-                <div class="alert danger">
-                    <strong>Pengajuan belum dapat dikirim.</strong>
-                    <ul>
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
+            <div class="stack">
 
-            <form method="POST" action="{{ route('masyarakat.perbaikan.store') }}">
-                @csrf
+                {{-- IDENTITAS TETAP --}}
+                <div class="form-card">
+                    <div class="form-card-head">
+                        <span class="form-card-num"><x-icon name="lock" :size="13" /></span>
 
-                <div class="form-grid">
-
-                    <div class="span-2">
-                        <label for="alamat">Alamat Baru</label>
-                        <textarea id="alamat" name="alamat"
-                            placeholder="Masukkan alamat terbaru jika ada perubahan">{{ old('alamat') }}</textarea>
-                    </div>
-
-                    <div>
-                        <label for="penghasilan_bulanan">
-                            Penghasilan Bulanan Baru (Rp)
-                        </label>
-                        <input type="number" id="penghasilan_bulanan" name="penghasilan_bulanan" min="0" step="1000"
-                            value="{{ old('penghasilan_bulanan') }}" placeholder="Contoh: 2000000">
-                    </div>
-
-                    <div>
-                        <label for="jumlah_tanggungan">
-                            Jumlah Tanggungan Baru
-                        </label>
-                        <input type="number" id="jumlah_tanggungan" name="jumlah_tanggungan" min="0" max="99"
-                            value="{{ old('jumlah_tanggungan') }}" placeholder="Contoh: 3">
-                    </div>
-
-                    <div class="span-2">
-                        <label for="kondisi_rumah">Kondisi Rumah Baru</label>
-                        <select id="kondisi_rumah" name="kondisi_rumah">
-                            <option value="">Tidak ada perubahan</option>
-
-                            <option value="permanen" @selected(old('kondisi_rumah') === 'permanen')>
-                                Permanen
-                            </option>
-
-                            <option value="semi_permanen" @selected(old('kondisi_rumah') === 'semi_permanen')>
-                                Semi Permanen
-                            </option>
-
-                            <option value="tidak_layak" @selected(old('kondisi_rumah') === 'tidak_layak')>
-                                Tidak Layak
-                            </option>
-                        </select>
-                    </div>
-
-                </div>
-
-                <div class="alert" style="background:#fff8e8;color:#85651b;">
-                    <strong>Perhatian:</strong>
-                    Perubahan tidak langsung diterapkan pada data Anda.
-                    Admin akan memeriksa dan menyetujui pengajuan terlebih dahulu.
-                </div>
-
-                <div class="form-actions">
-                    <a href="{{ route('dashboard') }}" class="btn outline">
-                        Batal
-                    </a>
-
-                    <button type="submit" class="btn primary">
-                        Kirim Pengajuan Perbaikan
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <div class="panel">
-            <div class="panel-head">
-                <div>
-                    <h3>Riwayat Pengajuan Perbaikan</h3>
-                    <p>Pantau perkembangan permintaan perubahan data Anda.</p>
-                </div>
-            </div>
-
-            @forelse ($items as $item)
-
-                <div style="padding:16px 0;border-top:1px solid var(--line);">
-
-                    <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;">
                         <div>
-                            <strong>Pengajuan #{{ $item->id_pengajuan }}</strong>
-                            <small class="sub">
-                                {{ $item->created_at->format('d/m/Y H:i') }}
-                            </small>
+                            <h3>Identitas &mdash; tidak dapat diubah sendiri</h3>
+                            <p>
+                                NIK, nama, dan tanggal lahir hanya dapat diubah petugas
+                                dengan verifikasi dokumen.
+                            </p>
                         </div>
-
-                        <span class="status {{ $item->status }}">
-                            {{ ucfirst($item->status) }}
-                        </span>
                     </div>
 
-                    <div class="detail-grid">
-                        @php
-                            $labels = [
-                                'alamat' => 'Alamat',
-                                'penghasilan_bulanan' => 'Penghasilan Bulanan',
-                                'jumlah_tanggungan' => 'Jumlah Tanggungan',
-                                'kondisi_rumah' => 'Kondisi Rumah',
-                            ];
-                        @endphp
+                    <div class="form-card-body">
+                        <div class="form-grid cols-3">
 
-                        @foreach (($item->data_usulan ?? []) as $key => $value)
-                            <div>
-                                <small>{{ $labels[$key] ?? ucfirst($key) }}</small>
+                            <div class="field">
+                                <label>NIK</label>
 
-                                <b>
-                                    @if ($key === 'penghasilan_bulanan')
-                                        Rp {{ number_format((float) $value, 0, ',', '.') }}
-                                    @elseif ($key === 'kondisi_rumah')
-                                        {{ ucwords(str_replace('_', ' ', $value)) }}
-                                    @else
-                                        {{ $value }}
-                                    @endif
-                                </b>
+                                <input class="input" type="text" readonly
+                                       value="{{ $nikWarga ?? 'Tidak dapat dibaca' }}">
                             </div>
-                        @endforeach
+
+                            <div class="field">
+                                <label>Nama</label>
+
+                                <input class="input" type="text" readonly
+                                       value="{{ $penerima->nama }}">
+                            </div>
+
+                            <div class="field">
+                                <label>Tanggal lahir</label>
+
+                                <input class="input" type="text" readonly
+                                       value="{{ $penerima->tanggal_lahir?->translatedFormat('d F Y') ?? '—' }}">
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                {{-- FORM --}}
+                <form method="POST" action="{{ route('masyarakat.perbaikan.store') }}" id="formPerbaikan">
+                    @csrf
+
+                    <div class="form-card">
+
+                        <div class="form-card-head">
+                            <span class="form-card-num">02</span>
+
+                            <div>
+                                <h3>Yang dapat Anda usulkan</h3>
+                                <p>Isi hanya bagian yang ingin diubah. Bagian kosong tidak akan diubah.</p>
+                            </div>
+                        </div>
+
+                        <div class="form-card-body">
+
+                            <div class="form-grid">
+
+                                <div class="field">
+                                    <label for="nomor_whatsapp">Nomor WhatsApp</label>
+
+                                    <input class="input" type="tel" id="nomor_whatsapp"
+                                           name="nomor_whatsapp" maxlength="20"
+                                           value="{{ old('nomor_whatsapp') }}"
+                                           placeholder="{{ $penerima->nomor_whatsapp ?: '081234567890' }}">
+
+                                    <small class="hint">
+                                        Nilai sekarang: {{ $penerima->nomor_whatsapp ?: 'belum diisi' }}
+                                    </small>
+                                </div>
+
+                                <div class="field">
+                                    <label for="jumlah_tanggungan">Jumlah tanggungan</label>
+
+                                    <input class="input" type="number" id="jumlah_tanggungan"
+                                           name="jumlah_tanggungan" min="0" max="99"
+                                           value="{{ old('jumlah_tanggungan') }}"
+                                           placeholder="{{ $penerima->jumlah_tanggungan }}">
+
+                                    <small class="hint">
+                                        Sebelumnya {{ $penerima->jumlah_tanggungan }} orang
+                                    </small>
+                                </div>
+
+                                <div class="field span-2">
+                                    <label for="alamat">Alamat lengkap</label>
+
+                                    <textarea class="textarea" id="alamat" name="alamat" rows="2"
+                                              placeholder="{{ $penerima->alamat }}">{{ old('alamat') }}</textarea>
+
+                                    <small class="hint">Alamat saat ini: {{ $penerima->alamat }}</small>
+                                </div>
+
+                                <div class="field span-2">
+                                    <label for="penghasilan_bulanan">Penghasilan bulanan</label>
+
+                                    <div class="input-prefix">
+                                        <span>Rp</span>
+
+                                        <input type="number" id="penghasilan_bulanan"
+                                               name="penghasilan_bulanan" min="0" step="1000"
+                                               value="{{ old('penghasilan_bulanan') }}"
+                                               placeholder="{{ (int) $penerima->penghasilan_bulanan }}">
+                                    </div>
+
+                                    <small class="hint">
+                                        Sebelumnya Rp {{ number_format((float) $penerima->penghasilan_bulanan, 0, ',', '.') }}
+                                    </small>
+                                </div>
+
+                            </div>
+
+                            <div class="field" style="margin-top:16px;">
+                                <label>Kondisi rumah</label>
+
+                                <div class="tile-group">
+
+                                    @foreach ([
+                                        'permanen' => ['Permanen', 'Dinding bata atau beton', 'home'],
+                                        'semi_permanen' => ['Semi permanen', 'Sebagian kayu atau batako', 'home'],
+                                        'tidak_layak' => ['Tidak layak', 'Bambu, lantai tanah', 'home'],
+                                    ] as $value => $item)
+                                        <label class="tile">
+                                            <input type="radio" name="kondisi_rumah" value="{{ $value }}"
+                                                @checked(old('kondisi_rumah') === $value)>
+
+                                            <span class="tile-icon">
+                                                <x-icon :name="$item[2]" :size="15" />
+                                            </span>
+
+                                            <span>
+                                                <strong>{{ $item[0] }}</strong>
+                                                <small>{{ $item[1] }}</small>
+                                            </span>
+
+                                            <span class="tile-check">
+                                                <x-icon name="check" :size="9" />
+                                            </span>
+                                        </label>
+                                    @endforeach
+
+                                </div>
+
+                                <small class="hint">
+                                    Kondisi saat ini:
+                                    {{ [
+                                        'permanen' => 'Permanen',
+                                        'semi_permanen' => 'Semi permanen',
+                                        'tidak_layak' => 'Tidak layak',
+                                    ][$penerima->kondisi_rumah] ?? '-' }}
+                                </small>
+                            </div>
+
+                            <div class="field" style="margin-top:16px;">
+                                <label for="alasan">Alasan perbaikan <span class="req">*</span></label>
+
+                                <textarea class="textarea" id="alasan" name="alasan" rows="3" required
+                                          placeholder="Contoh: Saya berhenti bekerja sejak Desember karena sakit, sehingga penghasilan menurun.">{{ old('alasan') }}</textarea>
+
+                                <small class="hint">
+                                    Jelaskan secara singkat dan dapat diverifikasi petugas.
+                                </small>
+
+                                @error('alasan')
+                                    <small class="err">{{ $message }}</small>
+                                @enderror
+                            </div>
+
+                        </div>
+
+                        <div class="card-foot" style="justify-content:flex-end;">
+                            <a href="{{ route('dashboard') }}" class="btn btn-outline">Batal</a>
+
+                            <button type="submit" class="btn btn-primary">
+                                <x-icon name="send" :size="14" />
+                                Kirim Usulan Perbaikan
+                            </button>
+                        </div>
+
                     </div>
 
-                    @if ($item->catatan_admin)
-                        <div class="alert" style="background:#f3f6f4;color:#52635c;">
-                            <strong>Catatan Admin:</strong>
-                            {{ $item->catatan_admin }}
+                </form>
+
+            </div>
+
+            {{-- SIDEBAR --}}
+            <aside class="stack">
+
+                <div class="card">
+                    <div class="card-head">
+                        <div>
+                            <h3>Ringkasan usulan</h3>
+                            <p>Perubahan akan dibandingkan sebelum disetujui</p>
                         </div>
-                    @endif
+                    </div>
 
+                    <div class="card-body">
+
+                        <div class="info-list">
+                            <div class="info-row">
+                                <small>No. WhatsApp</small>
+                                <strong>{{ $penerima->nomor_whatsapp ?: '—' }}</strong>
+                            </div>
+
+                            <div class="info-row">
+                                <small>Penghasilan</small>
+                                <strong>Rp {{ number_format((float) $penerima->penghasilan_bulanan, 0, ',', '.') }}</strong>
+                            </div>
+
+                            <div class="info-row">
+                                <small>Tanggungan</small>
+                                <strong>{{ $penerima->jumlah_tanggungan }} orang</strong>
+                            </div>
+
+                            <div class="info-row">
+                                <small>Kondisi rumah</small>
+                                <strong>
+                                    {{ [
+                                        'permanen' => 'Permanen',
+                                        'semi_permanen' => 'Semi permanen',
+                                        'tidak_layak' => 'Tidak layak',
+                                    ][$penerima->kondisi_rumah] ?? '-' }}
+                                </strong>
+                            </div>
+                        </div>
+
+                        @if ($menunggu > 0)
+                            <div class="alert alert-warning" style="margin:14px 0 0;">
+                                <x-icon name="clock" :size="14" />
+                                <div style="font-size:11.5px;">
+                                    {{ $menunggu }} usulan masih menunggu keputusan admin.
+                                </div>
+                            </div>
+                        @endif
+
+                    </div>
                 </div>
 
-            @empty
-                <div class="empty">
-                    Anda belum pernah mengajukan perubahan data.
+                <div class="card">
+                    <div class="card-head">
+                        <div>
+                            <h3>Usulan sebelumnya</h3>
+                            <p>{{ $items->count() }} riwayat usulan</p>
+                        </div>
+                    </div>
+
+                    <div class="card-body" style="padding-top:6px;padding-bottom:6px;">
+
+                        @forelse ($items->take(4) as $item)
+                            <div class="mini-row">
+                                <span class="ic">
+                                    <x-icon name="edit" :size="14" />
+                                </span>
+
+                                <div>
+                                    <b>
+                                        {{ $item->created_at?->format('d M Y') }}
+                                    </b>
+
+                                    <small>
+                                        @php
+                                            $kunci = collect(array_keys($item->data_usulan ?? []))
+                                                ->reject(fn ($k) => $k === 'alasan')
+                                                ->map(fn ($k) => $labelUsulan[$k] ?? $k)
+                                                ->take(2)
+                                                ->implode(', ');
+                                        @endphp
+
+                                        {{ $kunci ?: 'Tanpa perubahan' }}
+                                    </small>
+                                </div>
+
+                                <span class="badge {{ $item->status === 'menunggu' ? 'badge-amber' : ($item->status === 'disetujui' ? 'badge-green' : 'badge-red') }}"
+                                      style="margin-left:auto;flex:none;">
+                                    {{ ucfirst($item->status) }}
+                                </span>
+                            </div>
+                        @empty
+                            <div class="empty" style="padding:24px 12px;">
+                                <strong>Belum ada usulan</strong>
+                                <p style="font-size:11.5px;">Usulan perubahan akan tampil di sini.</p>
+                            </div>
+                        @endforelse
+
+                    </div>
                 </div>
-            @endforelse
+
+            </aside>
+
         </div>
-
     @endif
 
 @endsection

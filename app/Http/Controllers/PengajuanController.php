@@ -330,49 +330,71 @@ class PengajuanController extends Controller
             );
     }
 
-    public function index()
+    public function index(Request $r)
     {
-        $q = PengajuanBantuan::with([
-            'penerima',
-            'jenisBantuan',
-            'dokumen',
-        ])->where('status', 'diajukan');
-
-        // Batasi antrean sesuai wilayah admin.
         $idWilayahAdmin = auth()->user()->id_wilayah;
 
-        if ($idWilayahAdmin) {
-            $wilayahIds = WilayahScope::ids($idWilayahAdmin);
+        $wilayahIds = $idWilayahAdmin
+            ? WilayahScope::ids($idWilayahAdmin)
+            : [];
 
-            $q->where(function ($query) use ($wilayahIds) {
-                // Pengajuan baru menggunakan wilayah dari snapshot.
-                $query->whereIn(
-                    'data_penerima->id_wilayah',
-                    $wilayahIds
-                );
+        $scope = function ($query) use ($wilayahIds) {
+            if (!$wilayahIds) {
+                return;
+            }
 
-                // Pengajuan lama yang belum memiliki snapshot
-                // menggunakan wilayah dari profil penerima.
-                $query->orWhere(function ($legacy) use ($wilayahIds) {
+            $query->where(function ($sub) use ($wilayahIds) {
+                $sub->whereIn('data_penerima->id_wilayah', $wilayahIds);
+
+                $sub->orWhere(function ($legacy) use ($wilayahIds) {
                     $legacy->whereNull('data_penerima')
                         ->whereHas('penerima', function ($penerima) use ($wilayahIds) {
-                            $penerima->whereIn(
-                                'id_wilayah',
-                                $wilayahIds
-                            );
+                            $penerima->whereIn('id_wilayah', $wilayahIds);
                         });
                 });
             });
+        };
+
+        // Hitungan tiap tab status.
+        $hitung = [
+            'diajukan' => PengajuanBantuan::where('status', 'diajukan')->tap($scope)->count(),
+            'terverifikasi' => PengajuanBantuan::where('status', 'terverifikasi')->tap($scope)->count(),
+            'ditolak' => PengajuanBantuan::where('status', 'ditolak')->tap($scope)->count(),
+        ];
+
+        $tab = $r->get('tab', 'diajukan');
+
+        if (!array_key_exists($tab, $hitung)) {
+            $tab = 'diajukan';
         }
 
-        $pengajuan = $q
+        $pengajuan = PengajuanBantuan::with(['penerima', 'jenisBantuan', 'dokumen', 'verifikator'])
+            ->where('status', $tab)
+            ->tap($scope)
             ->latest('created_at')
-            ->paginate(10);
+            ->paginate(8)
+            ->withQueryString();
 
-        return view('admin.pengajuan.index', compact('pengajuan'));
+        // Detail pengajuan terpilih.
+        $terpilih = null;
+
+        if ($r->filled('pilih')) {
+            $terpilih = PengajuanBantuan::with(['penerima.dokumen', 'jenisBantuan.kategori', 'dokumen', 'verifikator'])
+                ->where('id_pengajuan', (int) $r->pilih)
+                ->tap($scope)
+                ->first();
+        }
+
+        if (!$terpilih) {
+            $terpilih = $pengajuan->first();
+        }
+
+        $tertua = PengajuanBantuan::where('status', 'diajukan')->tap($scope)->oldest()->value('created_at');
+
+        return view('admin.pengajuan.index', compact('pengajuan', 'hitung', 'tab', 'terpilih', 'tertua'));
     }
 
-    public function verifikasi(PengajuanBantuan $pengajuan)
+    public function verifikasi(Request $r, PengajuanBantuan $pengajuan)
     {
         // Pastikan pengajuan masih menunggu verifikasi.
         abort_unless(
@@ -384,7 +406,7 @@ class PengajuanController extends Controller
         // Pastikan pengajuan berada dalam wilayah admin.
         $this->scope($pengajuan);
 
-        DB::transaction(function () use ($pengajuan) {
+        DB::transaction(function () use ($r, $pengajuan) {
             $data = PengajuanBantuan::where(
                 'id_pengajuan',
                 $pengajuan->id_pengajuan
@@ -399,12 +421,27 @@ class PengajuanController extends Controller
                 'Pengajuan ini sudah pernah diproses.'
             );
 
-            $data->update([
+            $perubahan = [
                 'status' => 'terverifikasi',
                 'diverifikasi_oleh' => auth()->user()->id_user,
-                'tanggal_verifikasi' => now(),
-                'catatan_verifikasi' => null,
-            ]);
+                'tanggal_verifikasi' => $r->filled('tanggal_verifikasi')
+                    ? \Illuminate\Support\Carbon::parse($r->tanggal_verifikasi)
+                    : now(),
+                'catatan_verifikasi' => $r->filled('catatan_verifikasi')
+                    ? $r->catatan_verifikasi
+                    : null,
+            ];
+
+            // Kategori yang ditetapkan petugas boleh berbeda dari yang diminta warga.
+            if ($r->filled('id_jenis')) {
+                $valid = \App\Models\JenisBantuan::where('id_jenis', (int) $r->id_jenis)->exists();
+
+                if ($valid) {
+                    $perubahan['id_jenis'] = (int) $r->id_jenis;
+                }
+            }
+
+            $data->update($perubahan);
         });
 
         $pengajuan->refresh();
@@ -435,9 +472,13 @@ class PengajuanController extends Controller
         // Pastikan pengajuan berada dalam wilayah admin.
         $this->scope($pengajuan);
 
-        $d = $r->validate([
-            'catatan' => 'required|string|max:1000',
-        ]);
+        $catatan = $r->input('catatan') ?: $r->input('catatan_verifikasi');
+
+        $d = \Illuminate\Support\Facades\Validator::make(
+            ['catatan' => $catatan],
+            ['catatan' => 'required|string|max:1000'],
+            ['catatan.required' => 'Alasan penolakan wajib diisi.']
+        )->validate();
 
         DB::transaction(function () use ($pengajuan, $d) {
             $data = PengajuanBantuan::where(

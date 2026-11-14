@@ -100,7 +100,40 @@ class Penerima extends Model
         try {
             return decrypt($this->no_kk);
         } catch (\Throwable $e) {
-            return $this->no_kk;
+            // Nilai tidak dapat didekripsi (mis. APP_KEY berbeda).
+            // Jangan pernah tampilkan ciphertext ke pengguna.
+            return null;
         }
+    }
+
+    /**
+     * NIK hasil dekripsi. Mengembalikan null bila gagal didekripsi
+     * agar ciphertext tidak pernah tampil pada antarmuka.
+     */
+    public function getNikDecryptedAttribute(): ?string
+    {
+        if (empty($this->nik)) {
+            return null;
+        }
+
+        try {
+            return decrypt($this->nik);
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    /**
+     * NIK tersamarkan untuk ditampilkan pada daftar.
+     */
+    public function getNikMaskedAttribute(): string
+    {
+        $nik = $this->nik_decrypted;
+
+        if (!$nik) {
+            return 'Tidak tersedia';
+        }
+
+        return substr($nik, 0, 4) . '••••••' . substr($nik, -4);
     }
 }

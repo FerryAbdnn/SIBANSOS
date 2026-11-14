@@ -2,18 +2,22 @@
     'title' => 'Statistik',
     'value' => 0,
     'description' => null,
-    'icon' => '▦',
+    'icon' => 'bar-chart',
+    'tone' => 'green',
 ])
 
-<div {{ $attributes->merge(['class' => 'stat']) }}>
-    <div class="stat-card-top">
-        <span class="stat-card-title">{{ $title }}</span>
-        <span class="stat-card-icon" aria-hidden="true">{{ $icon }}</span>
+<div {{ $attributes->merge(['class' => 'kpi']) }}>
+    <div class="kpi-top">
+        <span class="kpi-label">{{ $title }}</span>
+
+        <span class="kpi-icon {{ $tone }}">
+            <x-icon :name="$icon" :size="16" />
+        </span>
     </div>
 
-    <strong>{{ $value }}</strong>
+    <strong class="kpi-value">{{ $value }}</strong>
 
     @if ($description)
-        <small>{{ $description }}</small>
+        <small class="kpi-caption">{{ $description }}</small>
     @endif
 </div>

@@ -1,153 +1,269 @@
 @extends('layouts.masyarakat')
 
 @section('title', 'Profil Saya')
+@section('heading', 'Profil Saya')
 
 @section('content')
 
-    <x-page-header title="Profil Saya"
-        description="Informasi akun dan data diri yang terhubung dengan akun SIBANSOS Anda." />
+    @php
+        $u = auth()->user();
 
-    <div class="panel">
-        <div class="panel-head">
-            <div>
-                <h3>Informasi Akun</h3>
-                <p>Informasi login dan identitas akun Anda.</p>
-            </div>
-            <span class="avatar" style="width:48px;height:48px;font-size:18px;">
-                {{ strtoupper(substr(auth()->user()->nama, 0, 1)) }}
-            </span>
-        </div>
+        $inisial = collect(explode(' ', trim($u->nama)))
+            ->filter()
+            ->take(2)
+            ->map(fn ($k) => strtoupper(substr($k, 0, 1)))
+            ->implode('');
 
-        <div class="detail-grid">
-            <div>
-                <small>Nama Akun</small>
-                <b>{{ auth()->user()->nama }}</b>
-            </div>
+        $nikWarga = $p?->nik_decrypted;
 
-            <div>
-                <small>Email</small>
-                <b>{{ auth()->user()->email }}</b>
-            </div>
+        $rtWarga = $p?->wilayah;
+        $rwWarga = $rtWarga && $rtWarga->id_induk
+            ? \App\Models\Wilayah::find($rtWarga->id_induk)
+            : null;
 
-            <div>
-                <small>Peran</small>
-                <b>{{ ucfirst(auth()->user()->peran) }}</b>
-            </div>
+        $kategoriAktif = $p
+            ? $p->riwayat
+                ->map(fn ($r) => optional(optional($r->jenis)->kategori)->nama)
+                ->filter()
+                ->first()
+            : null;
+    @endphp
 
-            <div>
-                <small>Status Akun</small>
-                <span class="status {{ auth()->user()->aktif ? 'terverifikasi' : 'nonaktif' }}">
-                    {{ auth()->user()->aktif ? 'Aktif' : 'Nonaktif' }}
-                </span>
-            </div>
+    <div class="page-head">
+        <div class="page-head-text">
+            <h1>Profil Saya</h1>
+            <p>Informasi akun dan data diri yang terhubung dengan SIBANSOS</p>
         </div>
     </div>
 
-    <div class="panel">
-        <h3>Data Penerima Bantuan</h3>
-        <p class="muted">
-            Data berikut terhubung dengan akun Anda dan digunakan dalam proses pendataan bantuan sosial.
-        </p>
+    {{-- BANNER --}}
+    <div class="card" style="margin-bottom:18px;">
+        <div class="card-body" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
 
-        @if ($p)
+            <div class="detail-avatar" style="width:58px;height:58px;font-size:19px;">
+                {{ $inisial ?: 'W' }}
+            </div>
 
-            <div class="detail-grid">
+            <div>
+                <div class="detail-name">
+                    <h1 style="font-size:20px;">{{ $u->nama }}</h1>
 
-                <div>
-                    <small>Nama Lengkap</small>
-                    <b>{{ $p->nama }}</b>
-                </div>
-
-                <div>
-                    <small>NIK</small>
-                    <b>••••••••••••{{ substr(decrypt($p->nik), -4) }}</b>
-                </div>
-
-                <div>
-                    <small>Nomor Kartu Keluarga</small>
-                    <b>
-                        @if ($p->no_kk)
-                            ••••••••••••{{ substr(decrypt($p->no_kk), -4) }}
-                        @else
-                            Belum tersedia
-                        @endif
-                    </b>
-                </div>
-
-                <div>
-                    <small>Tanggal Lahir</small>
-                    <b>{{ $p->tanggal_lahir?->format('d/m/Y') ?? '-' }}</b>
-                </div>
-
-                <div>
-                    <small>Jenis Kelamin</small>
-                    <b>{{ $p->jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan' }}</b>
-                </div>
-
-                <div>
-                    <small>Wilayah</small>
-                    <b>{{ $p->wilayah?->nama ?? '-' }}</b>
-                </div>
-
-                <div class="span-2">
-                    <small>Alamat</small>
-                    <b>{{ $p->alamat }}</b>
-                </div>
-
-                <div>
-                    <small>Penghasilan Bulanan</small>
-                    <b>Rp {{ number_format((float) $p->penghasilan_bulanan, 0, ',', '.') }}</b>
-                </div>
-
-                <div>
-                    <small>Jumlah Tanggungan</small>
-                    <b>{{ $p->jumlah_tanggungan }} orang</b>
-                </div>
-
-                <div>
-                    <small>Kondisi Rumah</small>
-                    <b>{{ ucwords(str_replace('_', ' ', $p->kondisi_rumah)) }}</b>
-                </div>
-
-                <div>
-                    <small>Status Pendataan</small>
-                    <span class="status {{ $p->status }}">
-                        {{ ucfirst($p->status) }}
+                    <span class="badge {{ $p ? 'badge-green' : 'badge-gray' }}">
+                        {{ $kategoriAktif ? 'Penerima ' . $kategoriAktif : 'Masyarakat' }}
                     </span>
                 </div>
 
-                <div>
-                    <small>Disabilitas</small>
-                    <b>{{ $p->disabilitas ? 'Ya' : 'Tidak' }}</b>
-                </div>
+                <div class="detail-meta">
+                    <span>{{ $u->email }}</span>
 
-                <div>
-                    <small>Lansia</small>
-                    <b>{{ $p->lansia ? 'Ya' : 'Tidak' }}</b>
-                </div>
+                    @if ($rtWarga)
+                        <i></i>
+                        <span>{{ $rtWarga->label }} / {{ $rwWarga->label ?? '-' }}</span>
+                    @endif
 
+                    <i></i>
+                    <span>Bergabung {{ $u->created_at?->translatedFormat('M Y') ?? '-' }}</span>
+                </div>
             </div>
 
-            <div class="alert" style="background:#fff8e8;color:#85651b;">
-                Untuk mengubah alamat, penghasilan, jumlah tanggungan, atau kondisi rumah,
-                silakan gunakan menu Pengajuan Perbaikan Data.
-            </div>
-
-            <a href="{{ route('masyarakat.perbaikan.create') }}" class="btn primary">
-                Ajukan Perbaikan Data
-            </a>
-
-        @else
-
-            <div class="empty">
-                <p>Belum ada data penerima yang terhubung dengan akun Anda.</p>
-
-                <a href="{{ route('masyarakat.pengajuan.create') }}" class="btn primary">
-                    Ajukan Bantuan
+            <div class="detail-actions">
+                <a href="{{ route('masyarakat.perbaikan.create') }}" class="btn btn-outline">
+                    <x-icon name="edit" :size="14" />
+                    Perbaiki Data
                 </a>
             </div>
 
-        @endif
+        </div>
+    </div>
+
+    <div class="grid-2-even">
+
+        <div class="stack">
+
+            {{-- AKUN --}}
+            <div class="card">
+                <div class="card-head">
+                    <div>
+                        <h3>Informasi akun</h3>
+                        <p>Informasi login yang Anda gunakan.</p>
+                    </div>
+                </div>
+
+                <div class="card-body" style="padding-top:4px;padding-bottom:8px;">
+                    <div class="info-list">
+                        <div class="info-row">
+                            <small>Nama akun</small>
+                            <strong>{{ $u->nama }}</strong>
+                        </div>
+
+                        <div class="info-row">
+                            <small>Email</small>
+                            <strong>{{ $u->email }}</strong>
+                        </div>
+
+                        <div class="info-row">
+                            <small>Peran</small>
+                            <strong>Masyarakat</strong>
+                        </div>
+
+                        <div class="info-row">
+                            <small>Status akun</small>
+                            <strong style="color:{{ $u->aktif ? '#2C5320' : '#8E3225' }};">
+                                {{ $u->aktif ? 'Aktif' : 'Nonaktif' }}
+                            </strong>
+                        </div>
+
+                        <div class="info-row">
+                            <small>Terdaftar sejak</small>
+                            <strong>{{ $u->created_at?->translatedFormat('d F Y') ?? '-' }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- DATA PENERIMA --}}
+            <div class="card">
+                <div class="card-head">
+                    <div>
+                        <h3>Data penerima bantuan</h3>
+                        <p>Data yang terhubung dengan akun Anda.</p>
+                    </div>
+
+                    <div class="card-head-actions">
+                        <span class="badge {{ $p ? 'badge-green' : 'badge-gray' }}">
+                            {{ $p ? ([
+                                'diajukan' => 'Menunggu',
+                                'terverifikasi' => 'Terverifikasi',
+                                'ditolak' => 'Ditolak',
+                                'nonaktif' => 'Nonaktif',
+                            ][$p->status] ?? ucfirst($p->status)) : 'Belum terdaftar' }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="card-body" style="padding-top:4px;padding-bottom:8px;">
+                    @if ($p)
+                        <div class="info-list">
+                            <div class="info-row">
+                                <small>Nama lengkap</small>
+                                <strong>{{ $p->nama }}</strong>
+                            </div>
+
+                            <div class="info-row">
+                                <small>NIK</small>
+                                <strong class="mono">
+                                    {{ $nikWarga ? substr($nikWarga, 0, 4) . '••••••' . substr($nikWarga, -4) : 'Tidak dapat dibaca' }}
+                                </strong>
+                            </div>
+
+                            <div class="info-row">
+                                <small>Nomor KK</small>
+                                <strong class="mono">
+                                    {{ $p->no_kk_decrypted ? substr($p->no_kk_decrypted, 0, 4) . '••••' . substr($p->no_kk_decrypted, -4) : '—' }}
+                                </strong>
+                            </div>
+
+                            <div class="info-row">
+                                <small>Tanggal lahir</small>
+                                <strong>{{ $p->tanggal_lahir?->translatedFormat('d F Y') ?? '-' }}</strong>
+                            </div>
+
+                            <div class="info-row">
+                                <small>Alamat</small>
+                                <strong>{{ $p->alamat }}</strong>
+                            </div>
+
+                            <div class="info-row">
+                                <small>Penghasilan</small>
+                                <strong>Rp {{ number_format((float) $p->penghasilan_bulanan, 0, ',', '.') }}</strong>
+                            </div>
+
+                            <div class="info-row">
+                                <small>Tanggungan</small>
+                                <strong>{{ $p->jumlah_tanggungan }} orang</strong>
+                            </div>
+                        </div>
+                    @else
+                        <div class="empty" style="padding:26px 12px;">
+                            <strong>Data penerima belum tersedia</strong>
+                            <p>Ajukan bantuan agar data Anda tercatat pada sistem.</p>
+
+                            <a href="{{ route('masyarakat.pengajuan.create') }}" class="btn btn-primary">
+                                Ajukan Bantuan
+                            </a>
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+        </div>
+
+        <div class="stack">
+
+            {{-- KEAMANAN --}}
+            <div class="card">
+                <div class="card-head">
+                    <div>
+                        <h3>Keamanan</h3>
+                        <p>Perlindungan data pribadi Anda.</p>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <div class="verify-note">
+                        <span class="ic"><x-icon name="lock" :size="14" /></span>
+
+                        <div>
+                            <b>NIK dan nomor KK disimpan terenkripsi</b>
+                            <p>
+                                Data identitas hanya dapat dilihat petugas berwenang pada wilayah
+                                penugasan Anda, sesuai UU No. 27 Tahun 2022.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="info-list" style="margin-top:14px;">
+                        <div class="info-row">
+                            <small>Kata sandi</small>
+                            <strong>Disimpan sebagai hash</strong>
+                        </div>
+
+                        <div class="info-row">
+                            <small>Login terakhir</small>
+                            <strong>{{ $u->updated_at?->format('d M Y H:i') ?? '-' }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- AKSES CEPAT --}}
+            <div class="card">
+                <div class="card-head">
+                    <div>
+                        <h3>Akses cepat</h3>
+                    </div>
+                </div>
+
+                <div class="card-body" style="display:grid;gap:8px;">
+                    <a href="{{ route('masyarakat.status') }}" class="btn btn-outline btn-block" style="justify-content:flex-start;">
+                        <x-icon name="file" :size="14" />
+                        Status pengajuan
+                    </a>
+
+                    <a href="{{ route('masyarakat.riwayat') }}" class="btn btn-outline btn-block" style="justify-content:flex-start;">
+                        <x-icon name="history" :size="14" />
+                        Riwayat bantuan
+                    </a>
+
+                    <a href="{{ route('masyarakat.perbaikan.create') }}" class="btn btn-outline btn-block" style="justify-content:flex-start;">
+                        <x-icon name="edit" :size="14" />
+                        Perbaikan data
+                    </a>
+                </div>
+            </div>
+
+        </div>
+
     </div>
 
 @endsection

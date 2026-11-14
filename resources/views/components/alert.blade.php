@@ -1,25 +1,38 @@
-@if(session('success'))
-    <div class="alert alert-success" role="alert">
-        <span>✓</span>
-        {{ session('success') }}
+{{-- Notifikasi global --}}
+
+@if (session('success'))
+    <div class="alert alert-success" role="status">
+        <x-icon name="check" :size="16" />
+        <div>{{ session('success') }}</div>
     </div>
 @endif
 
-@if(session('error'))
-    <div class="alert alert-danger" role="alert">
-        <span>!</span>
-        {{ session('error') }}
+@if (session('warning'))
+    <div class="alert alert-warning" role="alert">
+        <x-icon name="alert" :size="16" />
+        <div>{{ session('warning') }}</div>
     </div>
 @endif
 
-@if($errors->any())
+@if (session('error'))
     <div class="alert alert-danger" role="alert">
-        <strong>Periksa kembali data yang kamu masukkan:</strong>
+        <x-icon name="alert" :size="16" />
+        <div>{{ session('error') }}</div>
+    </div>
+@endif
 
-        <ul>
-            @foreach($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
+@if ($errors->any())
+    <div class="alert alert-danger" role="alert">
+        <x-icon name="alert" :size="16" />
+
+        <div>
+            <strong>Periksa kembali data yang Anda masukkan.</strong>
+
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
     </div>
 @endif

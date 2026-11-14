@@ -1,26 +1,66 @@
+{{--
+|--------------------------------------------------------------------------
+| Topbar
+|--------------------------------------------------------------------------
+| Variabel opsional:
+|   $topbarTitle       -> judul kecil di kiri (default dari @yield('heading'))
+|   $topbarSearch      -> placeholder pencarian
+|   $topbarSearchRoute -> route tujuan form pencarian
+|--------------------------------------------------------------------------
+--}}
+
+@php
+    $topbarTitle = $topbarTitle ?? trim($__env->yieldContent('heading'));
+
+    $isAdmin = auth()->user()->peran === 'admin';
+
+    $searchPlaceholder = $topbarSearch
+        ?? ($isAdmin
+            ? 'Cari NIK, nama, atau kode penerima...'
+            : 'Cari riwayat atau pengajuan saya...');
+
+    $searchRoute = $topbarSearchRoute
+        ?? ($isAdmin ? route('admin.penerima.index') : null);
+
+    $searchValue = $isAdmin ? request('q') : null;
+@endphp
+
 <header class="topbar">
-    <div class="navbar-heading">
-        <span class="navbar-eyebrow">SISTEM INFORMASI BANTUAN SOSIAL</span>
 
-        <h2>@yield('heading', 'Dashboard Admin')</h2>
+    <button type="button" class="icon-btn sidebar-toggle" id="sidebarToggle" aria-label="Buka menu">
+        <x-icon name="list" :size="17" />
+    </button>
 
-        <p>Kelola pendataan dan penyaluran bantuan sosial.</p>
+    <div class="topbar-title">
+        {{ $topbarTitle ?: 'SIBANSOS' }}
     </div>
 
-    <div class="navbar-actions">
-        <div class="navbar-date">
-            <span class="date-icon">▦</span>
-            <span>{{ now()->format('d/m/Y') }}</span>
-        </div>
+    <div class="topbar-actions">
 
-        <div class="navbar-user">
-            <div class="navbar-avatar">
-                {{ strtoupper(substr(auth()->user()->nama, 0, 1)) }}
-            </div>
+        @if ($searchRoute)
+            <form method="GET" action="{{ $searchRoute }}" class="search-box" role="search">
+                <x-icon name="search" :size="15" />
 
-            <div class="navbar-user-info">
-                <b>{{ auth()->user()->nama }}</b>
+                <input type="search" name="q" value="{{ $searchValue }}"
+                       placeholder="{{ $searchPlaceholder }}" aria-label="Pencarian">
+            </form>
+        @else
+            <div class="search-box" aria-hidden="true">
+                <x-icon name="search" :size="15" />
+
+                <input type="search" placeholder="{{ $searchPlaceholder }}" disabled>
             </div>
-        </div>
+        @endif
+
+        <button type="button" class="icon-btn" aria-label="Notifikasi">
+            <x-icon name="bell" :size="17" />
+            <span class="dot"></span>
+        </button>
+
+        <a href="{{ route('profile') }}" class="icon-btn" aria-label="Pengaturan">
+            <x-icon name="settings" :size="17" />
+        </a>
+
     </div>
+
 </header>

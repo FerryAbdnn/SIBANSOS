@@ -690,8 +690,10 @@ class PenerimaController extends Controller
         return $r->validate([
 
             // Identitas
+            // Saat edit, NIK boleh dikosongkan bila tidak ingin diubah
+            // (mis. nilai lama tidak dapat didekripsi karena kunci berbeda).
             'nik' => $update
-                ? 'sometimes|required|digits:16'
+                ? 'nullable|digits:16'
                 : 'required|digits:16',
 
             'no_kk' => [

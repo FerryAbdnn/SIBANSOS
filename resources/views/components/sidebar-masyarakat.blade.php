@@ -1,83 +1,108 @@
-<aside class="sidebar">
+{{--
+|--------------------------------------------------------------------------
+| Sidebar Masyarakat
+|--------------------------------------------------------------------------
+--}}
+
+@php
+    $wargaUser = auth()->user();
+
+    $penerimaWarga = null;
+
+    try {
+        $penerimaWarga = \App\Models\Penerima::with('riwayat.jenis.kategori')
+            ->where('id_user', $wargaUser->id_user)
+            ->first();
+    } catch (\Throwable $e) {
+        $penerimaWarga = null;
+    }
+
+    $kategoriWarga = optional(
+        optional(optional($penerimaWarga)->riwayat)->first()
+    )->jenis;
+
+    $labelKategori = optional(optional($kategoriWarga)->kategori)->nama;
+
+    $inisial = collect(explode(' ', trim($wargaUser->nama)))
+        ->filter()
+        ->take(2)
+        ->map(fn ($k) => strtoupper(substr($k, 0, 1)))
+        ->implode('');
+@endphp
+
+<aside class="sidebar" id="sidebar">
 
     <a href="{{ route('dashboard') }}" class="brand">
-        <span class="brand-mark">S</span>
+        <span class="brand-mark">
+            <x-icon name="shield" :size="20" />
+        </span>
 
         <span>
             <b>SIBANSOS</b>
-            <small>Portal Masyarakat</small>
+            <small>Pendaftaran Bantuan Sosial</small>
         </span>
     </a>
 
-    <div class="side-label">
-        MENU UTAMA
-    </div>
+    <div class="nav-label">Layanan Saya</div>
 
-    <a href="{{ route('dashboard') }}" class="menu-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-        <span>▦</span>
+    <a href="{{ route('dashboard') }}"
+       class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+        <x-icon name="grid" :size="17" />
         Dashboard
     </a>
 
-    <div class="side-label">
-        LAYANAN BANTUAN
-    </div>
-
     <a href="{{ route('masyarakat.pengajuan.create') }}"
-        class="menu-link {{ request()->routeIs('masyarakat.pengajuan.*') ? 'active' : '' }}">
-        <span>＋</span>
+       class="nav-link {{ request()->routeIs('masyarakat.pengajuan.*') ? 'active' : '' }}">
+        <x-icon name="send" :size="17" />
         Pengajuan Bantuan
     </a>
 
     <a href="{{ route('masyarakat.status') }}"
-        class="menu-link {{ request()->routeIs('masyarakat.status') ? 'active' : '' }}">
-        <span>◷</span>
+       class="nav-link {{ request()->routeIs('masyarakat.status') ? 'active' : '' }}">
+        <x-icon name="file" :size="17" />
         Status Pengajuan
     </a>
 
-    <a href="{{ route('masyarakat.perbaikan.create') }}"
-        class="menu-link {{ request()->routeIs('masyarakat.perbaikan.*') ? 'active' : '' }}">
-        <span>✎</span>
-        Perbaikan Data
-    </a>
-
     <a href="{{ route('masyarakat.riwayat') }}"
-        class="menu-link {{ request()->routeIs('masyarakat.riwayat') ? 'active' : '' }}">
-        <span>◷</span>
+       class="nav-link {{ request()->routeIs('masyarakat.riwayat') ? 'active' : '' }}">
+        <x-icon name="history" :size="17" />
         Riwayat Bantuan
     </a>
 
-    <div class="side-label">
-        AKUN SAYA
-    </div>
+    <a href="{{ route('masyarakat.perbaikan.create') }}"
+       class="nav-link {{ request()->routeIs('masyarakat.perbaikan.*') ? 'active' : '' }}">
+        <x-icon name="edit" :size="17" />
+        Perbaikan Data
+    </a>
 
-    <a href="{{ route('profile') }}" class="menu-link {{ request()->routeIs('profile') ? 'active' : '' }}">
-        <span>♙</span>
-        Profil
+    <div class="nav-label">Akun</div>
+
+    <a href="{{ route('profile') }}"
+       class="nav-link {{ request()->routeIs('profile') ? 'active' : '' }}">
+        <x-icon name="user" :size="17" />
+        Profil Saya
     </a>
 
     <div class="sidebar-bottom">
-
-        <div class="user-chip">
-
-            <div class="avatar">
-                {{ strtoupper(substr(auth()->user()->nama, 0, 1)) }}
-            </div>
+        <div class="sidebar-user">
+            <div class="avatar">{{ $inisial ?: 'W' }}</div>
 
             <div>
-                <b>{{ auth()->user()->nama }}</b>
-                <small>Masyarakat</small>
+                <b>{{ $penerimaWarga->nama ?? $wargaUser->nama }}</b>
+                <small>
+                    {{ $labelKategori ? 'Penerima ' . $labelKategori : 'Masyarakat' }}
+                </small>
             </div>
-
         </div>
 
-        <form method="POST" action="{{ route('logout') }}">
+        <form method="POST" action="{{ route('logout') }}" class="logout-form">
             @csrf
 
-            <button type="submit" class="logout">
-                ↪ Keluar
+            <button type="submit" class="logout-btn">
+                <x-icon name="logout" :size="15" />
+                Keluar
             </button>
         </form>
-
     </div>
 
 </aside>
