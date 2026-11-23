@@ -1,0 +1,717 @@
+
+/* =========================================================
+   ADMIN PERBAIKAN DATA
+   ========================================================= */
+
+.perbaikan-page {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    color: #20391a;
+}
+
+/* HEADER */
+
+.perbaikan-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 26px 30px;
+    border: 1px solid #e7ebdf;
+    border-radius: 16px;
+    background: linear-gradient(120deg, #ffffff 0%, #f2f7ef 100%);
+}
+
+.perbaikan-eyebrow {
+    display: inline-block;
+    margin-bottom: 8px;
+    color: #176b50;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+}
+
+.perbaikan-header h2 {
+    margin: 0 0 8px;
+    color: #173b12;
+    font-size: 23px;
+    font-weight: 800;
+}
+
+.perbaikan-header p {
+    margin: 0;
+    color: #778371;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.perbaikan-header-icon {
+    display: grid;
+    flex-shrink: 0;
+    width: 58px;
+    height: 58px;
+    place-items: center;
+    border-radius: 16px;
+    background: #eaf1e7;
+    font-size: 27px;
+}
+
+/* ALERT */
+
+.perbaikan-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 14px 17px;
+    border: 1px solid;
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.perbaikan-alert.warning {
+    border-color: #f1d7a4;
+    background: #fff9eb;
+    color: #8b5d12;
+}
+
+.perbaikan-alert.success {
+    border-color: #c9e6d3;
+    background: #eff9f1;
+    color: #247344;
+}
+
+.perbaikan-alert ul {
+    margin: 6px 0 0;
+    padding-left: 18px;
+}
+
+/* STATISTIK */
+
+.perbaikan-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.perbaikan-stat {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    min-height: 105px;
+    padding: 19px 21px;
+    border: 1px solid #e7ebdf;
+    border-radius: 13px;
+    background: #ffffff;
+}
+
+.perbaikan-stat-icon {
+    display: grid;
+    flex-shrink: 0;
+    width: 45px;
+    height: 45px;
+    place-items: center;
+    border-radius: 12px;
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.perbaikan-stat-icon.waiting {
+    background: #fff4dc;
+    color: #b7791f;
+}
+
+.perbaikan-stat-icon.approved {
+    background: #e8f5eb;
+    color: #27834a;
+}
+
+.perbaikan-stat-icon.rejected {
+    background: #fcebea;
+    color: #c44747;
+}
+
+.perbaikan-stat > div:last-child {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.perbaikan-stat-label {
+    color: #778371;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.perbaikan-stat strong {
+    color: #20391a;
+    font-size: 25px;
+    line-height: 1.2;
+}
+
+.perbaikan-stat small {
+    color: #9aa394;
+    font-size: 10px;
+}
+
+/* JUDUL DAFTAR */
+
+.perbaikan-section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+.perbaikan-section-heading h3 {
+    margin: 0 0 5px;
+    color: #20391a;
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.perbaikan-section-heading p {
+    margin: 0;
+    color: #879080;
+    font-size: 12px;
+}
+
+.perbaikan-total {
+    padding: 8px 12px;
+    border: 1px solid #dce9dc;
+    border-radius: 8px;
+    background: #f1f7ef;
+    color: #176b50;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* DAFTAR KARTU */
+
+.perbaikan-list {
+    display: flex;
+    flex-direction: column;
+    gap: 19px;
+}
+
+.perbaikan-card {
+    overflow: hidden;
+    border: 1px solid #e5eade;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 3px 12px rgba(31, 59, 25, 0.035);
+}
+
+.perbaikan-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 21px 23px;
+    border-bottom: 1px solid #edf0e9;
+}
+
+.perbaikan-person {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    min-width: 0;
+}
+
+.perbaikan-avatar {
+    display: grid;
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    border-radius: 13px;
+    background: #eaf1e7;
+    color: #176b50;
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.perbaikan-person h4 {
+    margin: 0 0 4px;
+    color: #20391a;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.perbaikan-person p {
+    margin: 0 0 4px;
+    color: #778371;
+    font-size: 11px;
+}
+
+.perbaikan-date {
+    color: #9aa394;
+    font-size: 10px;
+}
+
+.perbaikan-status {
+    flex-shrink: 0;
+    padding: 7px 11px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.perbaikan-status.menunggu {
+    background: #fff4dc;
+    color: #a66c13;
+}
+
+.perbaikan-status.disetujui {
+    background: #e8f5eb;
+    color: #27834a;
+}
+
+.perbaikan-status.ditolak {
+    background: #fcebea;
+    color: #c44747;
+}
+
+/* ALASAN */
+
+.perbaikan-reason {
+    margin: 19px 23px 0;
+    padding: 15px 17px;
+    border-left: 3px solid #176b50;
+    border-radius: 0 9px 9px 0;
+    background: #f6f8f3;
+}
+
+.perbaikan-block-label {
+    display: block;
+    margin-bottom: 8px;
+    color: #879080;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: .8px;
+}
+
+.perbaikan-reason p {
+    margin: 0;
+    color: #45523f;
+    font-size: 12px;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+}
+
+/* BAGIAN DATA */
+
+.perbaikan-data-section {
+    padding: 22px 23px 0;
+}
+
+.perbaikan-block-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.perbaikan-block-heading h5 {
+    margin: 0 0 5px;
+    color: #263c20;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.perbaikan-block-heading p {
+    margin: 0;
+    color: #8a9384;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+/* PERBANDINGAN */
+
+.perbaikan-comparison {
+    overflow: hidden;
+    border: 1px solid #e8ece3;
+    border-radius: 10px;
+}
+
+.perbaikan-comparison-head,
+.perbaikan-comparison-row {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr 1.2fr;
+}
+
+.perbaikan-comparison-head {
+    background: #f4f7f1;
+}
+
+.perbaikan-comparison-head > div {
+    padding: 12px 14px;
+    color: #778371;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: .5px;
+}
+
+.perbaikan-comparison-row {
+    border-top: 1px solid #edf0e9;
+}
+
+.perbaikan-comparison-row > div {
+    min-width: 0;
+    padding: 12px 14px;
+    font-size: 11px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+.perbaikan-field-label {
+    background: #fafbf8;
+    color: #66725e;
+    font-weight: 700;
+}
+
+.perbaikan-old-value {
+    color: #778371;
+}
+
+.perbaikan-new-value {
+    background: #f5faf4;
+    color: #176b50;
+    font-weight: 700;
+}
+
+/* DOKUMEN */
+
+.perbaikan-documents {
+    padding: 22px 23px;
+}
+
+.perbaikan-document-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 11px;
+}
+
+.perbaikan-document-link {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-width: 0;
+    padding: 12px 13px;
+    border: 1px solid #e3eadf;
+    border-radius: 10px;
+    background: #ffffff;
+    color: inherit;
+    text-decoration: none;
+    transition: border-color .2s, background .2s;
+}
+
+.perbaikan-document-link:hover {
+    border-color: #a8c8a6;
+    background: #f7faf5;
+}
+
+.perbaikan-document-icon {
+    font-size: 21px;
+}
+
+.perbaikan-document-link > span:nth-child(2) {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.perbaikan-document-link strong {
+    color: #34452d;
+    font-size: 11px;
+    overflow-wrap: anywhere;
+}
+
+.perbaikan-document-link small {
+    color: #899384;
+    font-size: 10px;
+}
+
+.perbaikan-document-arrow {
+    color: #176b50;
+    font-size: 16px;
+}
+
+.perbaikan-document-empty {
+    padding: 12px;
+    border: 1px dashed #e1e6dc;
+    border-radius: 9px;
+    background: #fafbf8;
+    color: #929b8d;
+    font-size: 10px;
+}
+
+/* KEPUTUSAN */
+
+.perbaikan-decision {
+    padding: 21px 23px 23px;
+    border-top: 1px solid #edf0e9;
+    background: #fbfcfa;
+}
+
+.perbaikan-decision-form {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.perbaikan-decision-form label {
+    color: #46543f;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.perbaikan-decision-form label span {
+    color: #9aa394;
+    font-weight: 400;
+}
+
+.perbaikan-decision-form textarea {
+    width: 100%;
+    min-height: 76px;
+    padding: 12px 13px;
+    border: 1px solid #dfe6d9;
+    border-radius: 9px;
+    outline: none;
+    background: #ffffff;
+    color: #34452d;
+    font: inherit;
+    font-size: 11px;
+    resize: vertical;
+    box-sizing: border-box;
+    transition: border-color .2s, box-shadow .2s;
+}
+
+.perbaikan-decision-form textarea:focus {
+    border-color: #176b50;
+    box-shadow: 0 0 0 3px rgba(23, 107, 80, .09);
+}
+
+.perbaikan-decision-actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 9px;
+    margin-top: 7px;
+}
+
+.perbaikan-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 38px;
+    padding: 9px 15px;
+    border: 0;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 700;
+    transition: background .2s, transform .2s;
+}
+
+.perbaikan-button:hover {
+    transform: translateY(-1px);
+}
+
+.perbaikan-button.approve {
+    background: #176b50;
+    color: #ffffff;
+}
+
+.perbaikan-button.approve:hover {
+    background: #12563f;
+}
+
+.perbaikan-button.reject {
+    border: 1px solid #f0d5d3;
+    background: #fff5f4;
+    color: #bd4545;
+}
+
+.perbaikan-button.reject:hover {
+    background: #fce9e7;
+}
+
+/* PENGAJUAN SELESAI */
+
+.perbaikan-processed {
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+    padding: 17px 23px;
+    border-top: 1px solid #edf0e9;
+    background: #fafbf8;
+}
+
+.perbaikan-processed > div:first-child {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.perbaikan-processed strong {
+    color: #40523a;
+    font-size: 12px;
+}
+
+.perbaikan-processed small {
+    color: #929b8d;
+    font-size: 10px;
+}
+
+.perbaikan-admin-note {
+    padding: 12px 14px;
+    border-radius: 8px;
+    background: #f0f4ec;
+}
+
+.perbaikan-admin-note span {
+    color: #778371;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.perbaikan-admin-note p {
+    margin: 5px 0 0;
+    color: #46543f;
+    font-size: 11px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+/* KOSONG DAN PAGINATION */
+
+.perbaikan-empty {
+    padding: 55px 20px;
+    border: 1px dashed #dce5d6;
+    border-radius: 13px;
+    background: #ffffff;
+    text-align: center;
+}
+
+.perbaikan-empty-icon {
+    margin-bottom: 13px;
+    font-size: 35px;
+}
+
+.perbaikan-empty h4 {
+    margin: 0 0 7px;
+    color: #34452d;
+    font-size: 15px;
+}
+
+.perbaikan-empty p {
+    max-width: 390px;
+    margin: 0 auto;
+    color: #899384;
+    font-size: 11px;
+    line-height: 1.7;
+}
+
+.perbaikan-pagination {
+    display: flex;
+    justify-content: center;
+    padding: 8px 0;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 900px) {
+    .perbaikan-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .perbaikan-stat {
+        min-height: 85px;
+    }
+}
+
+@media (max-width: 640px) {
+    .perbaikan-page {
+        gap: 17px;
+    }
+
+    .perbaikan-header {
+        padding: 20px;
+    }
+
+    .perbaikan-header h2 {
+        font-size: 19px;
+    }
+
+    .perbaikan-header-icon {
+        width: 45px;
+        height: 45px;
+        font-size: 22px;
+    }
+
+    .perbaikan-card-head {
+        align-items: flex-start;
+        padding: 17px;
+    }
+
+    .perbaikan-person {
+        gap: 9px;
+    }
+
+    .perbaikan-avatar {
+        width: 37px;
+        height: 37px;
+    }
+
+    .perbaikan-status {
+        font-size: 9px;
+    }
+
+    .perbaikan-reason {
+        margin: 15px 15px 0;
+    }
+
+    .perbaikan-data-section {
+        padding: 18px 15px 0;
+    }
+
+    .perbaikan-comparison {
+        overflow-x: auto;
+    }
+
+    .perbaikan-comparison-head,
+    .perbaikan-comparison-row {
+        min-width: 570px;
+    }
+
+    .perbaikan-documents {
+        padding: 18px 15px;
+    }
+
+    .perbaikan-document-list {
+        grid-template-columns: 1fr;
+    }
+
+    .perbaikan-decision {
+        padding: 18px 15px;
+    }
+
+    .perbaikan-decision-actions {
+        flex-direction: column-reverse;
+    }
+
+    .perbaikan-button {
+        width: 100%;
+    }
+
+    .perbaikan-processed {
+        padding: 16px 15px;
+    }
+}

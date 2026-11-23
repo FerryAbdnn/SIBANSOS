@@ -103,4 +103,17 @@ class Penerima extends Model
             return $this->no_kk;
         }
     }
+
+    public function getNikDecryptedAttribute(): ?string
+    {
+        if (empty($this->nik)) {
+            return null;
+        }
+
+        try {
+            return decrypt($this->nik);
+        } catch (\Throwable $e) {
+            return $this->nik;
+        }
+    }
 }

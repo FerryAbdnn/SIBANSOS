@@ -254,7 +254,7 @@ class PenerimaController extends Controller
                 return $p;
             });
         } catch (Throwable $e) {
-            Storage::disk('public')->delete($storedPaths);
+            Storage::disk('local')->delete($storedPaths);
             throw $e;
         }
 
@@ -296,6 +296,45 @@ class PenerimaController extends Controller
             'totalDiterima',
             'kategoriAktif'
         ));
+    }
+
+    public function showDocument(
+        Penerima $penerima,
+        DokumenPendukung $dokumen
+    ) {
+        // Pastikan penerima berada dalam wilayah kewenangan admin.
+        $this->authorizeScope($penerima);
+
+        // Pastikan dokumen benar-benar milik penerima pada URL.
+        abort_unless(
+            (int) $dokumen->id_penerima === (int) $penerima->id_penerima,
+            404,
+            'Dokumen tidak ditemukan.'
+        );
+
+        // Gunakan penyimpanan privat.
+        $disk = Storage::disk('local');
+
+        $root = realpath($disk->path(''));
+        $file = realpath($disk->path($dokumen->path_file));
+
+        // Pastikan file benar-benar berada di dalam folder privat.
+        abort_unless(
+            $root &&
+            $file &&
+            is_file($file) &&
+            str_starts_with(
+                $file,
+                $root . DIRECTORY_SEPARATOR
+            ),
+            404,
+            'File dokumen tidak ditemukan.'
+        );
+
+        return response()->file($file, [
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'private, no-store, no-cache, must-revalidate',
+        ]);
     }
     
     public function edit(Penerima $penerima)
@@ -457,11 +496,12 @@ class PenerimaController extends Controller
                 );
             });
         } catch (Throwable $e) {
-            Storage::disk('public')->delete($storedPaths);
+            Storage::disk('local')->delete($storedPaths);
             throw $e;
         }
 
-        // Hapus file lama setelah transaksi berhasil.
+        // Hapus file lama dari penyimpanan privat dan publik.
+        Storage::disk('local')->delete($oldPaths);
         Storage::disk('public')->delete($oldPaths);
 
         return redirect()
@@ -482,7 +522,7 @@ class PenerimaController extends Controller
             return;
         }
 
-        $path = $file->store('dokumen-penerima', 'public');
+        $path = $file->store('dokumen-penerima', 'local');
 
         if (!$path) {
             throw new \RuntimeException('Dokumen gagal disimpan.');
@@ -605,10 +645,22 @@ class PenerimaController extends Controller
             ->all();
 
         // Sertakan RW induk dari RT yang masuk cakupan admin.
-        $parentRwIds = Wilayah::whereIn('id_wilayah', $rtIds)
+        $parentIds = Wilayah::whereIn('id_wilayah', $rtIds)
+            ->where('tipe', 'rt')
             ->pluck('id_induk')
             ->filter()
+            ->unique()
+            ->values()
             ->all();
+
+        $parentRwIds = Wilayah::whereIn('id_wilayah', $parentIds)
+            ->where('tipe', 'rw')
+            ->pluck('id_wilayah')
+            ->all();
+
+        $rwIds = array_unique(
+            array_merge($rwIds, $parentRwIds)
+        );
 
         $rwIds = array_unique(
             array_merge($rwIds, $parentRwIds)

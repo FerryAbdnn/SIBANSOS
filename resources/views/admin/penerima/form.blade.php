@@ -827,9 +827,10 @@
 
 .recipient-form-page {
     width: 100%;
-    max-width: 1180px;
-    margin: 0 auto;
+    max-width: none;
+    margin: 0;
     color: #20391a;
+    box-sizing: border-box;
 }
 
 /* =========================================

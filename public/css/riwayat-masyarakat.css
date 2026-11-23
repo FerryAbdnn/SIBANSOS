@@ -1,0 +1,452 @@
+
+/* =====================================================
+   RIWAYAT BANTUAN - MASYARAKAT
+   Palet warna standar SIBANSOS
+===================================================== */
+
+.riwayat-page {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    color: #20391a;
+    min-width: 0;
+}
+
+/* IDENTITAS PENERIMA */
+
+.riwayat-identity {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px 23px;
+    background: #ffffff;
+    border: 1px solid #e7ebdf;
+    border-radius: 12px;
+}
+
+.riwayat-eyebrow {
+    display: block;
+    margin-bottom: 7px;
+    color: #778371;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.riwayat-identity h3 {
+    margin: 0 0 5px;
+    color: #20391a;
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.riwayat-identity p {
+    margin: 0;
+    color: #778371;
+    font-size: 12px;
+}
+
+.riwayat-status {
+    flex-shrink: 0;
+    padding: 7px 12px;
+    border-radius: 20px;
+    background: #eaf1e7;
+    color: #173b12;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.riwayat-status.nonaktif,
+.riwayat-status.ditolak {
+    background: #fff1ed;
+    color: #a34b35;
+}
+
+.riwayat-status.diajukan {
+    background: #fff6e5;
+    color: #936b20;
+}
+
+/* RINGKASAN */
+
+.riwayat-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 15px;
+}
+
+.riwayat-summary-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+    min-width: 0;
+    padding: 18px;
+    background: #ffffff;
+    border: 1px solid #e7ebdf;
+    border-radius: 12px;
+}
+
+.summary-icon {
+    display: flex;
+    margin-top: 15px;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 39px;
+    width: 39px;
+    height: 39px;
+    border-radius: 10px;
+    background: #eaf1e7;
+    color: #173b12;
+}
+
+.riwayat-symbol {
+    font-size: 19px;
+    font-style: normal;
+    font-weight: 800;
+}
+
+.riwayat-summary-card > div {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 5px;
+}
+
+.riwayat-summary-card small {
+    color: #778371;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.riwayat-summary-card strong {
+    color: #173b12;
+    font-size: 23px;
+    font-weight: 800;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+.riwayat-summary-card strong.summary-text {
+    font-size: 16px;
+}
+
+.riwayat-summary-card span:last-child {
+    color: #899284;
+    font-size: 10px;
+    line-height: 1.5;
+}
+
+/* GRID KONTEN */
+
+.riwayat-content-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.75fr) minmax(245px, 0.85fr);
+    align-items: start;
+    gap: 18px;
+}
+
+.riwayat-main-column,
+.riwayat-side-column {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    min-width: 0;
+}
+
+.riwayat-panel {
+    width: 100%;
+    min-width: 0;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.riwayat-panel-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 17px;
+}
+
+.riwayat-panel-heading h3 {
+    margin: 0 0 5px;
+    color: #20391a;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.riwayat-panel-heading p {
+    margin: 0;
+    color: #778371;
+    font-size: 11px;
+    line-height: 1.6;
+}
+
+.riwayat-count {
+    flex-shrink: 0;
+    padding: 6px 10px;
+    border-radius: 20px;
+    background: #eaf1e7;
+    color: #173b12;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+/* TABEL */
+
+.riwayat-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.riwayat-table {
+    width: 100%;
+    min-width: 620px;
+    border-collapse: collapse;
+}
+
+.riwayat-table th {
+    padding: 11px 10px;
+    background: #f8f8f2;
+    color: #778371;
+    font-size: 10px;
+    font-weight: 800;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.riwayat-table td {
+    padding: 13px 10px;
+    border-bottom: 1px solid #edf0e9;
+    color: #52604d;
+    font-size: 11px;
+    line-height: 1.6;
+    vertical-align: top;
+}
+
+.riwayat-table td strong {
+    display: block;
+    color: #20391a;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.riwayat-table td .sub {
+    display: block;
+    margin-top: 3px;
+    color: #899284;
+    font-size: 10px;
+}
+
+.riwayat-table .empty {
+    padding: 25px 12px;
+    color: #899284;
+    text-align: center;
+}
+
+.riwayat-pagination {
+    margin-top: 16px;
+}
+
+/* STATISTIK KATEGORI */
+
+.category-stat {
+    padding: 13px 0;
+    border-bottom: 1px solid #edf0e9;
+}
+
+.category-stat:first-of-type {
+    padding-top: 2px;
+}
+
+.category-stat:last-child {
+    padding-bottom: 2px;
+    border-bottom: none;
+}
+
+.category-stat-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 9px;
+}
+
+.category-stat-heading strong {
+    color: #20391a;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.category-stat-heading span {
+    color: #778371;
+    font-size: 10px;
+    white-space: nowrap;
+}
+
+.category-progress {
+    width: 100%;
+    height: 7px;
+    overflow: hidden;
+    border-radius: 10px;
+    background: #edf0e9;
+}
+
+.category-progress > div {
+    height: 100%;
+    border-radius: inherit;
+    background: #173b12;
+}
+
+.category-stat > small {
+    display: block;
+    margin-top: 7px;
+    color: #899284;
+    font-size: 10px;
+}
+
+/* DETAIL PENYALURAN TERAKHIR */
+
+.riwayat-last-detail {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 17px;
+}
+
+.riwayat-last-detail > div {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.riwayat-last-detail small {
+    color: #778371;
+    font-size: 10px;
+}
+
+.riwayat-last-detail strong {
+    color: #20391a;
+    font-size: 12px;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+.riwayat-last-detail .last-detail-note {
+    grid-column: 1 / -1;
+    padding-top: 13px;
+    border-top: 1px solid #edf0e9;
+}
+
+.last-detail-note p {
+    margin: 0;
+    color: #52604d;
+    font-size: 11px;
+    line-height: 1.7;
+}
+
+.riwayat-empty-detail {
+    padding: 17px;
+    border-radius: 8px;
+    background: #f8f8f2;
+    color: #778371;
+    font-size: 11px;
+    line-height: 1.7;
+    text-align: center;
+}
+
+/* PANEL BANTUAN */
+
+.riwayat-help-panel {
+    background: #f8f8f2;
+    border: 1px solid #e7ebdf;
+}
+
+.riwayat-help-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    margin-bottom: 12px;
+    border-radius: 50%;
+    background: #eaf1e7;
+    color: #173b12;
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.riwayat-help-panel h3 {
+    margin: 0 0 8px;
+    color: #20391a;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.riwayat-help-panel p {
+    margin: 0 0 15px;
+    color: #778371;
+    font-size: 11px;
+    line-height: 1.8;
+}
+
+.riwayat-help-panel .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1050px) {
+    .riwayat-content-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .riwayat-side-column {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: start;
+    }
+}
+
+@media (max-width: 700px) {
+    .riwayat-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .riwayat-side-column {
+        grid-template-columns: 1fr;
+    }
+
+    .riwayat-identity {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .riwayat-panel {
+        padding: 15px;
+    }
+
+    .riwayat-panel-heading {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 480px) {
+    .riwayat-last-detail {
+        grid-template-columns: 1fr;
+    }
+
+    .riwayat-last-detail .last-detail-note {
+        grid-column: auto;
+    }
+
+    .riwayat-summary-card {
+        padding: 15px;
+    }
+}

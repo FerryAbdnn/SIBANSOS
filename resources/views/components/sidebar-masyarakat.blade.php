@@ -1,26 +1,24 @@
+
+@php
+    $user = auth()->user();
+@endphp
+
 <aside class="sidebar">
 
-    <a href="{{ route('dashboard') }}" class="brand">
-        <span class="brand-mark">S</span>
+    @include('components.brand-logo', [
+        'href' => route('dashboard'),
+        'class' => 'brand'
+    ])
 
-        <span>
-            <b>SIBANSOS</b>
-            <small>Portal Masyarakat</small>
-        </span>
-    </a>
+    <div class="side-label">MENU UTAMA</div>
 
-    <div class="side-label">
-        MENU UTAMA
-    </div>
-
-    <a href="{{ route('dashboard') }}" class="menu-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+    <a href="{{ route('dashboard') }}"
+        class="menu-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
         <span>▦</span>
         Dashboard
     </a>
 
-    <div class="side-label">
-        LAYANAN BANTUAN
-    </div>
+    <div class="side-label">LAYANAN BANTUAN</div>
 
     <a href="{{ route('masyarakat.pengajuan.create') }}"
         class="menu-link {{ request()->routeIs('masyarakat.pengajuan.*') ? 'active' : '' }}">
@@ -46,11 +44,10 @@
         Riwayat Bantuan
     </a>
 
-    <div class="side-label">
-        AKUN SAYA
-    </div>
+    <div class="side-label">AKUN SAYA</div>
 
-    <a href="{{ route('profile') }}" class="menu-link {{ request()->routeIs('profile') ? 'active' : '' }}">
+    <a href="{{ route('profile') }}"
+        class="menu-link {{ request()->routeIs('profile') ? 'active' : '' }}">
         <span>♙</span>
         Profil
     </a>
@@ -58,21 +55,18 @@
     <div class="sidebar-bottom">
 
         <div class="user-chip">
-
             <div class="avatar">
-                {{ strtoupper(substr(auth()->user()->nama, 0, 1)) }}
+                {{ strtoupper(substr($user->nama ?? 'M', 0, 1)) }}
             </div>
 
             <div>
-                <b>{{ auth()->user()->nama }}</b>
-                <small>Masyarakat</small>
+                <b>{{ $user->nama ?? 'Masyarakat' }}</b>
+                <small>{{ ucfirst($user->peran ?? 'masyarakat') }}</small>
             </div>
-
         </div>
 
         <form method="POST" action="{{ route('logout') }}">
             @csrf
-
             <button type="submit" class="logout">
                 ↪ Keluar
             </button>

@@ -10,6 +10,7 @@
     </title>
 
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/brand-logo.css') }}">
 </head>
 
 <body>
@@ -20,14 +21,10 @@
         <aside class="sidebar">
 
             {{-- Brand --}}
-            <a class="brand" href="{{ route('dashboard') }}">
-                <span class="brand-mark">S</span>
-
-                <span>
-                    <b>SIBANSOS</b>
-                    <small>Sistem Bantuan Sosial</small>
-                </span>
-            </a>
+            @include('components.brand-logo', [
+                'href' => route('dashboard'),
+                'class' => 'brand'
+            ])
 
             {{-- Main Menu --}}
             <div class="side-label">MENU UTAMA</div>

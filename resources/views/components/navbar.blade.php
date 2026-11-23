@@ -1,10 +1,22 @@
+
 <header class="topbar">
+    @php
+        $user = auth()->user();
+        $isAdmin = $user && $user->peran === 'admin';
+    @endphp
+
     <div class="navbar-heading">
-        <span class="navbar-eyebrow">SISTEM INFORMASI BANTUAN SOSIAL</span>
+        <span class="navbar-eyebrow">
+            SISTEM INFORMASI BANTUAN SOSIAL
+        </span>
 
-        <h2>@yield('heading', 'Dashboard Admin')</h2>
+        <h2>@yield('heading', 'Dashboard')</h2>
 
-        <p>Kelola pendataan dan penyaluran bantuan sosial.</p>
+        <p>
+            {{ $isAdmin
+                ? 'Kelola pendataan dan penyaluran bantuan sosial.'
+                : 'Pantau pengajuan dan informasi bantuan sosial Anda.' }}
+        </p>
     </div>
 
     <div class="navbar-actions">
@@ -15,11 +27,12 @@
 
         <div class="navbar-user">
             <div class="navbar-avatar">
-                {{ strtoupper(substr(auth()->user()->nama, 0, 1)) }}
+                {{ strtoupper(substr($user->nama ?? 'U', 0, 1)) }}
             </div>
 
             <div class="navbar-user-info">
-                <b>{{ auth()->user()->nama }}</b>
+                <b>{{ $user->nama ?? 'Pengguna' }}</b>
+                <small>{{ ucfirst($user->peran ?? 'pengguna') }}</small>
             </div>
         </div>
     </div>

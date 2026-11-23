@@ -1,0 +1,135 @@
+/* =========================================================
+   LOGO BERSAMA SIBANSOS
+   Digunakan oleh halaman publik, autentikasi, dan dashboard
+   ========================================================= */
+
+.brand-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    color: #20391a;
+    text-decoration: none;
+}
+
+.brand-logo__mark {
+    width: 46px;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: 12px;
+    background: #173b12;
+    color: #ffffff;
+}
+
+.brand-logo__mark svg {
+    display: block;
+    width: 27px;
+    height: 27px;
+}
+
+.brand-logo__text {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    line-height: 1.25;
+}
+
+.brand-logo__text strong {
+    color: #20391a;
+    font-family: 'Manrope', sans-serif;
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+
+.brand-logo__text small {
+    color: #778371;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+}
+
+/* Login dan register */
+.login-brand {
+    margin-bottom: 42px;
+}
+
+.reg-brand {
+    margin-bottom: 35px;
+}
+
+/* Navbar halaman publik */
+.public-brand {
+    gap: 9px;
+    flex-shrink: 0;
+}
+
+.public-brand .brand-logo__mark {
+    width: 29px;
+    height: 29px;
+    border-radius: 6px;
+}
+
+.public-brand .brand-logo__mark svg {
+    width: 19px;
+    height: 19px;
+}
+
+.public-brand .brand-logo__text {
+    gap: 1px;
+}
+
+.public-brand .brand-logo__text strong {
+    color: #173b12;
+    font-size: 11px;
+}
+
+.public-brand .brand-logo__text small {
+    color: #8a9382;
+    font-size: 8px;
+}
+
+/* Sidebar admin dan masyarakat */
+.sidebar .brand-logo {
+    margin: 0 7px 35px;
+    gap: 11px;
+}
+
+.sidebar .brand-logo__mark {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+}
+
+.sidebar .brand-logo__mark svg {
+    width: 24px;
+    height: 24px;
+}
+
+.sidebar .brand-logo__text strong {
+    font-size: 16px;
+}
+
+.sidebar .brand-logo__text small {
+    font-size: 11px;
+}
+
+/* Layar ponsel */
+@media (max-width: 360px) {
+    .public-brand {
+        gap: 6px;
+    }
+
+    .public-brand .brand-logo__mark {
+        width: 27px;
+        height: 27px;
+    }
+
+    .public-brand .brand-logo__mark svg {
+        width: 18px;
+        height: 18px;
+    }
+}

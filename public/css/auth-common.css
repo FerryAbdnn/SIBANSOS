@@ -1,0 +1,270 @@
+
+/* =========================================================
+   SIBANSOS - AUTHENTICATION DESIGN SYSTEM
+   Standar visual bersama Login dan Register
+   ========================================================= */
+
+:root {
+    /* Identitas warna SIBANSOS - mengikuti halaman publik */
+    --auth-green: #173b12;
+    --auth-green-dark: #14350f;
+    --auth-green-light: #eaf1e7;
+
+    --auth-ink: #20391a;
+    --auth-muted: #778371;
+    --auth-border: #e7ebdf;
+    --auth-background: #f8f8f2;
+    --auth-white: #ffffff;
+    --auth-danger: #a63f37;
+
+    /* Tipografi dan ukuran komponen */
+    --auth-font: 'DM Sans', 'Segoe UI', Arial, sans-serif;
+    --auth-input-height: 47px;
+    --auth-button-height: 48px;
+    --auth-radius: 9px;
+}
+
+/* FONT DAN WARNA DASAR */
+
+.login-page,
+.reg-page {
+    font-family: var(--auth-font);
+    color: var(--auth-ink);
+}
+
+.login-page {
+    --login-green: var(--auth-green);
+    --login-green-dark: var(--auth-green-dark);
+    --login-green-light: var(--auth-green-light);
+    --login-ink: var(--auth-ink);
+    --login-muted: var(--auth-muted);
+    --login-border: var(--auth-border);
+    --login-white: var(--auth-white);
+}
+
+.reg-page {
+    --reg-green: var(--auth-green);
+    --reg-green-dark: var(--auth-green-dark);
+    --reg-green-light: var(--auth-green-light);
+    --reg-text: var(--auth-ink);
+    --reg-muted: var(--auth-muted);
+    --reg-border: var(--auth-border);
+    --reg-white: var(--auth-white);
+}
+
+/* JUDUL UTAMA */
+
+.login-heading,
+.reg-heading h1 {
+    color: var(--auth-ink);
+    font-size: 30px;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.8px;
+}
+
+/* DESKRIPSI */
+
+.login-description,
+.reg-heading p {
+    color: var(--auth-muted);
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+/* LABEL FORM */
+
+.login-field label,
+.reg-field label {
+    color: var(--auth-ink);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* INPUT, SELECT, DAN TEXTAREA */
+
+.login-field input,
+.reg-field input,
+.reg-field select,
+.reg-field textarea {
+    box-sizing: border-box;
+    border: 1px solid var(--auth-border);
+    border-radius: var(--auth-radius);
+    color: var(--auth-ink);
+    font-family: var(--auth-font);
+    font-size: 13px;
+}
+
+.login-field input,
+.reg-field input,
+.reg-field select {
+    min-height: var(--auth-input-height);
+}
+
+.login-field input:focus,
+.reg-field input:focus,
+.reg-field select:focus,
+.reg-field textarea:focus {
+    border-color: var(--auth-green);
+    box-shadow: 0 0 0 3px rgba(23, 59, 18, 0.12);
+}
+
+/* TOMBOL UTAMA */
+
+.login-submit,
+.reg-submit {
+    box-sizing: border-box;
+    min-height: var(--auth-button-height);
+    border-radius: var(--auth-radius);
+    background: var(--auth-green);
+    color: var(--auth-white);
+    font-family: var(--auth-font);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.login-submit:hover,
+.reg-submit:hover {
+    background: var(--auth-green-dark);
+}
+
+/* PANEL HIJAU KANAN */
+
+.login-aside,
+.reg-aside {
+    background:
+        radial-gradient(
+            circle at 90% 8%,
+            rgba(255, 255, 255, 0.08),
+            transparent 32%
+        ),
+        linear-gradient(
+            145deg,
+            #173b12 0%,
+            #14350f 55%,
+            #102b0c 100%
+        );
+}
+
+/* LINK */
+
+.login-forgot,
+.login-register-button,
+.reg-login-link a {
+    color: var(--auth-green);
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 760px) {
+    .login-heading,
+    .reg-heading h1 {
+        font-size: 27px;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-heading,
+    .reg-heading h1 {
+        font-size: 25px;
+    }
+}
+
+
+/* =========================================================
+   LOGO SIBANSOS - IDENTITAS VISUAL BERSAMA
+   ========================================================= */
+
+.login-brand,
+.reg-brand {
+    color: var(--auth-ink);
+}
+
+.login-brand-mark,
+.reg-brand-icon {
+    width: 46px;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: 12px;
+    background: var(--auth-green);
+    color: #ffffff;
+}
+
+.login-brand-mark {
+    font-size: 21px;
+}
+
+.login-brand-mark svg,
+.reg-brand-icon svg {
+    width: 27px;
+    height: 27px;
+    color: #ffffff;
+}
+
+.login-brand-text strong,
+.reg-brand-text strong {
+    color: var(--auth-ink);
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+
+.login-brand-text small,
+.reg-brand-text small {
+    color: var(--auth-muted);
+    font-size: 10px;
+}
+
+
+/* =========================================================
+   BRAND LOGO SIBANSOS - KOMPONEN BERSAMA
+   ========================================================= */
+
+.brand-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--auth-ink, #20391a);
+    text-decoration: none;
+    flex-shrink: 0;
+}
+
+.brand-logo__mark {
+    width: 46px;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: 12px;
+    background: var(--auth-green, #173b12);
+    color: #ffffff;
+}
+
+.brand-logo__mark svg {
+    display: block;
+    width: 27px;
+    height: 27px;
+}
+
+.brand-logo__text {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.brand-logo__text strong {
+    color: var(--auth-ink, #20391a);
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+
+.brand-logo__text small {
+    color: var(--auth-muted, #778371);
+    font-size: 10px;
+    line-height: 1.3;
+}

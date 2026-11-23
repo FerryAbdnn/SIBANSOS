@@ -8,6 +8,7 @@
     <title>@yield('title', 'Portal Masyarakat') - SIBANSOS</title>
 
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/brand-logo.css') }}">
     @stack('styles')
 </head>
 

@@ -32,6 +32,11 @@ class PengajuanBantuan extends Model
         return $this->hasMany(DokumenPendukung::class, 'id_pengajuan', 'id_pengajuan');
     }
 
+    public function riwayat()
+    {
+        return $this->hasMany(RiwayatBantuan::class, 'id_pengajuan', 'id_pengajuan');
+    }
+
     public function verifikator()
     {
         return $this->belongsTo(User::class, 'diverifikasi_oleh', 'id_user');

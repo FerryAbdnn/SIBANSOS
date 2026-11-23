@@ -21,9 +21,8 @@
             ? $wilayahMap->get($rt->id_induk)
             : null;
 
-        $namaWilayah = $rt && $rt->tipe !== 'rt'
-            ? $rt->nama
-            : '-';
+        $namaWilayah = $rw?->nama
+            ?? ($rt && $rt->tipe !== 'rt' ? $rt->nama : '-');
 
         $statusLabel = [
             'diajukan' => 'Menunggu Verifikasi',
@@ -46,6 +45,9 @@
 
         $dokumenKk = $penerima->dokumen
             ->where('jenis_dokumen', 'kk');
+
+        $dokumenLainnya = $penerima->dokumen
+            ->where('jenis_dokumen', 'lainnya');
     @endphp
 
     <div class="recipient-detail-page">
@@ -103,7 +105,7 @@
         {{-- CONTENT GRID --}}
         <div class="recipient-detail-layout">
 
-            <main class="recipient-detail-main">
+            <div class="recipient-detail-main">
 
                 {{-- SUMMARY --}}
                 <div class="recipient-summary-grid">
@@ -246,9 +248,19 @@
                     <div class="recipient-document-grid">
 
                         @foreach ([
-                                'ktp' => ['label' => 'Kartu Tanda Penduduk', 'items' => $dokumenKtp],
-                                'kk' => ['label' => 'Kartu Keluarga', 'items' => $dokumenKk],
-                            ] as $jenis => $data)
+                            'ktp' => [
+                                'label' => 'Kartu Tanda Penduduk',
+                                'items' => $dokumenKtp,
+                            ],
+                            'kk' => [
+                                'label' => 'Kartu Keluarga',
+                                'items' => $dokumenKk,
+                            ],
+                            'lainnya' => [
+                                'label' => 'Dokumen Pendukung Lainnya',
+                                'items' => $dokumenLainnya,
+                            ],
+                        ] as $jenis => $data)
 
                             <div class="recipient-document-item">
                                 <div class="recipient-document-icon">▤</div>
@@ -258,7 +270,10 @@
 
                                     @if ($data['items']->isNotEmpty())
                                         @foreach ($data['items'] as $dokumen)
-                                            <a href="{{ asset('storage/' . $dokumen->path_file) }}" target="_blank" rel="noopener">
+                                            <a href="{{ route('admin.penerima.dokumen.show', [
+                                                'penerima' => $penerima->id_penerima,
+                                                'dokumen' => $dokumen->id_dokumen,
+                                            ]) }}" target="_blank" rel="noopener">
                                                 {{ $dokumen->nama_file }}
                                             </a>
                                         @endforeach
@@ -274,7 +289,7 @@
 
                 </section>
 
-            </main>
+            </div>
 
             <aside class="recipient-detail-sidebar">
 
@@ -971,13 +986,10 @@
 
         /* RESPONSIVE */
         @media (max-width: 1100px) {
-            .recipient-detail-layout {
-                grid-template-columns: minmax(0, 1fr) 260px;
-            }
-
-            .recipient-summary-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
+        .recipient-detail-layout {
+            width: 100%;
+            margin-left: 0;
+            grid-template-columns: minmax(0, 1fr) 260px;
         }
 
         @media (max-width: 800px) {

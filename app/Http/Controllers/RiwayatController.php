@@ -56,6 +56,25 @@ class RiwayatController extends Controller
             });
         }
 
+        // Statistik riwayat penyaluran sesuai cakupan wilayah admin.
+        $totalPenyaluran = (clone $q)->count();
+
+        $penyaluranBulanIni = (clone $q)
+            ->whereMonth('tanggal_terima', now()->month)
+            ->whereYear('tanggal_terima', now()->year)
+            ->count();
+
+        $totalPenerima = (clone $q)
+            ->whereNotNull('id_penerima')
+            ->distinct('id_penerima')
+            ->count('id_penerima');
+
+        $totalProgram = (clone $q)
+            ->whereNotNull('id_jenis')
+            ->distinct('id_jenis')
+            ->count('id_jenis');
+
+        // Daftar riwayat penyaluran.
         $items = $q->latest()->paginate(15);
 
         // Hanya pengajuan yang sudah terverifikasi
@@ -94,7 +113,14 @@ class RiwayatController extends Controller
 
         return view(
             'admin.riwayat.index',
-            compact('items', 'pengajuanList')
+            compact(
+                'items',
+                'pengajuanList',
+                'totalPenyaluran',
+                'penyaluranBulanIni',
+                'totalPenerima',
+                'totalProgram'
+            )
         );
     }
 
@@ -105,19 +131,63 @@ class RiwayatController extends Controller
             auth()->id()
         )->first();
 
+        $items = collect();
+        $totalPenyaluran = 0;
+        $kategoriUtama = null;
+        $tanggalTerakhir = null;
+        $kategoriStats = collect();
+        $riwayatTerbaru = null;
+
         if ($penerima) {
+            $riwayatSemua = $penerima->riwayat()
+                ->with('jenis.kategori')
+                ->orderByDesc('tanggal_terima')
+                ->orderByDesc('id_riwayat')
+                ->get();
+
             $items = $penerima->riwayat()
                 ->with('jenis.kategori')
                 ->orderByDesc('tanggal_terima')
+                ->orderByDesc('id_riwayat')
                 ->paginate(10)
                 ->withQueryString();
-        } else {
-            $items = collect();
+
+            $totalPenyaluran = $riwayatSemua->count();
+
+            $riwayatTerbaru = $riwayatSemua->first();
+
+            $tanggalTerakhir = $riwayatTerbaru?->tanggal_terima;
+
+            $kategoriStats = $riwayatSemua
+                ->groupBy(function ($item) {
+                    return $item->jenis?->kategori?->nama ?? 'Lainnya';
+                })
+                ->map(function ($group, $nama) use ($totalPenyaluran) {
+                    return [
+                        'nama' => $nama,
+                        'jumlah' => $group->count(),
+                        'persentase' => $totalPenyaluran > 0
+                            ? round(($group->count() / $totalPenyaluran) * 100)
+                            : 0,
+                    ];
+                })
+                ->sortByDesc('jumlah')
+                ->values();
+
+            $kategoriUtama = $kategoriStats->first()['nama'] ?? null;
         }
 
         return view(
             'masyarakat.riwayat',
-            compact('penerima', 'items')
+            compact(
+                'penerima',
+                'items',
+                'totalPenyaluran',
+                'kategoriUtama',
+                'tanggalTerakhir',
+                'kategoriStats',
+                'riwayatTerbaru'
+            )
         );
     }
 

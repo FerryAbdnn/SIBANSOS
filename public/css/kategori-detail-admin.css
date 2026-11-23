@@ -1,0 +1,302 @@
+
+.kategori-detail-page {
+    --kategori-green: #176b50;
+    --kategori-dark: #173b12;
+    --kategori-muted: #778371;
+    --kategori-border: #e7ebdf;
+    color: #20391a;
+}
+
+.kategori-detail-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    color: var(--kategori-muted);
+    font-size: 13px;
+}
+
+.kategori-detail-breadcrumb a,
+.kategori-detail-footer a {
+    color: var(--kategori-green);
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.kategori-detail-breadcrumb i {
+    font-size: 10px;
+}
+
+.kategori-detail-hero {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    padding: 28px;
+    margin-bottom: 24px;
+    background: linear-gradient(120deg, #f0f6ed, #ffffff);
+    border: 1px solid var(--kategori-border);
+    border-radius: 18px;
+}
+
+.kategori-detail-hero-icon,
+.kategori-detail-item-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--kategori-green);
+    background: #e4f0e7;
+}
+
+.kategori-detail-hero-icon {
+    width: 66px;
+    height: 66px;
+    border-radius: 17px;
+    font-size: 27px;
+}
+
+.kategori-detail-hero-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.kategori-detail-eyebrow,
+.kategori-detail-section-label {
+    color: var(--kategori-green);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+}
+
+.kategori-detail-hero-info h2 {
+    margin: 5px 0 7px;
+    color: var(--kategori-dark);
+    font-size: 25px;
+    font-weight: 800;
+}
+
+.kategori-detail-hero-info p {
+    margin: 0 0 12px;
+    color: var(--kategori-muted);
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.kategori-detail-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 11px;
+    border-radius: 8px;
+    background: #e6f1e8;
+    color: var(--kategori-green);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.kategori-detail-edit,
+.kategori-detail-add {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 15px;
+    border-radius: 9px;
+    background: var(--kategori-green);
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: .2s ease;
+}
+
+.kategori-detail-edit:hover,
+.kategori-detail-add:hover {
+    background: #12543e;
+    color: white;
+    transform: translateY(-1px);
+}
+
+.kategori-detail-panel {
+    padding: 24px;
+    background: #fff;
+    border: 1px solid var(--kategori-border);
+    border-radius: 16px;
+}
+
+.kategori-detail-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.kategori-detail-panel-head h3 {
+    margin: 6px 0;
+    color: var(--kategori-dark);
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.kategori-detail-panel-head p {
+    margin: 0;
+    color: var(--kategori-muted);
+    font-size: 12px;
+}
+
+.kategori-detail-list {
+    display: grid;
+    gap: 12px;
+}
+
+.kategori-detail-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 17px;
+    border: 1px solid var(--kategori-border);
+    border-radius: 12px;
+    transition: .2s ease;
+}
+
+.kategori-detail-item:hover {
+    border-color: #b9d4c1;
+    background: #fbfdfb;
+}
+
+.kategori-detail-item-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    font-size: 19px;
+}
+
+.kategori-detail-item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.kategori-detail-item-info h4 {
+    margin: 0 0 5px;
+    color: var(--kategori-dark);
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.kategori-detail-item-info p {
+    margin: 0 0 7px;
+    color: var(--kategori-muted);
+    font-size: 12px;
+}
+
+.kategori-detail-item-info span {
+    color: #66735f;
+    font-size: 11px;
+}
+
+.kategori-detail-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.kategori-detail-status {
+    padding: 6px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.kategori-detail-status.aktif {
+    color: #187345;
+    background: #e5f5e9;
+}
+
+.kategori-detail-status.nonaktif {
+    color: #a34b4b;
+    background: #fbeaea;
+}
+
+.kategori-detail-item-edit {
+    color: var(--kategori-green);
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.kategori-detail-item-edit:hover {
+    text-decoration: underline;
+}
+
+.kategori-detail-empty {
+    padding: 45px 20px;
+    text-align: center;
+    color: var(--kategori-muted);
+}
+
+.kategori-detail-empty > i {
+    display: block;
+    margin-bottom: 12px;
+    font-size: 32px;
+    color: #a8b6a2;
+}
+
+.kategori-detail-empty strong {
+    display: block;
+    color: var(--kategori-dark);
+    font-size: 15px;
+}
+
+.kategori-detail-empty p {
+    font-size: 12px;
+}
+
+.kategori-detail-empty a {
+    color: var(--kategori-green);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.kategori-detail-footer {
+    margin-top: 20px;
+    font-size: 13px;
+}
+
+.kategori-detail-footer a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+@media (max-width: 700px) {
+    .kategori-detail-hero {
+        align-items: flex-start;
+        flex-wrap: wrap;
+        padding: 20px;
+    }
+
+    .kategori-detail-hero-info {
+        flex-basis: calc(100% - 90px);
+    }
+
+    .kategori-detail-edit {
+        width: 100%;
+    }
+
+    .kategori-detail-panel-head {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .kategori-detail-item {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .kategori-detail-item-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+}

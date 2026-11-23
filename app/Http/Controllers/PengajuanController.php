@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use App\Services\ActivityLogger;
 use App\Models\JenisBantuan;
 use App\Models\PengajuanBantuan;
+use App\Models\DokumenPendukung;
 use App\Models\RiwayatBantuan;
 use Throwable;
 
@@ -24,10 +25,22 @@ class PengajuanController extends Controller
             auth()->user()->id_user
         )->first();
 
+        if (!$penerima) {
+            return redirect()
+                ->route('dashboard')
+                ->with('error', 'Profil penerima belum tersedia. Lengkapi pendaftaran terlebih dahulu.');
+        }
+
+        if (!in_array($penerima->status, ['terverifikasi', 'nonaktif'], true)) {
+            return redirect()
+                ->route('dashboard')
+                ->with('error', 'Profil Anda harus diverifikasi admin sebelum dapat mengajukan bantuan.');
+        }
+
         // Dekripsi NIK untuk ditampilkan pada formulir.
         $nik = null;
 
-        if ($penerima && !empty($penerima->nik)) {
+        if (!empty($penerima->nik)) {
             try {
                 $nik = decrypt($penerima->nik);
             } catch (Throwable $e) {
@@ -38,21 +51,31 @@ class PengajuanController extends Controller
         return view('masyarakat.pengajuan', [
             'penerima' => $penerima,
             'nik' => $nik,
-
             'wilayah' => Wilayah::orderBy('nama')->get(),
-
             'jenisBantuan' => JenisBantuan::where('aktif', 1)
                 ->orderBy('nama_program')
                 ->get(),
         ]);
     }
-    
+
     public function store(Request $r)
     {
         $idUser = auth()->user()->id_user;
 
-        // Ambil profil masyarakat jika sudah terdaftar.
+        // Profil penerima wajib sudah tersedia.
         $penerimaAwal = Penerima::where('id_user', $idUser)->first();
+
+        if (!$penerimaAwal) {
+            return redirect()
+                ->route('dashboard')
+                ->with('error', 'Profil penerima belum tersedia. Lengkapi pendaftaran terlebih dahulu.');
+        }
+
+        // Profil harus diverifikasi sebelum pengajuan bantuan.
+        if (!in_array($penerimaAwal->status, ['terverifikasi', 'nonaktif'], true)) {
+            return back()
+                ->with('error', 'Profil Anda harus diverifikasi admin sebelum dapat mengajukan bantuan.');
+        }
 
         // Validasi data identitas hanya untuk masyarakat baru.
         $aturan = [
@@ -61,8 +84,14 @@ class PengajuanController extends Controller
 
             'id_rw' => [
                 'required',
+                'integer',
                 \Illuminate\Validation\Rule::exists('wilayah', 'id_wilayah')
-                    ->where('tipe', 'rw'),
+                    ->where('tipe', 'rw')
+                    ->whereIn(
+                        'id_induk',
+                        Wilayah::whereIn('tipe', ['desa', 'kelurahan'])
+                            ->select('id_wilayah')
+                    ),
             ],
 
             'id_wilayah' => [
@@ -93,28 +122,7 @@ class PengajuanController extends Controller
             'dokumen_sktm' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ];
 
-        if (!$penerimaAwal) {
-            $aturan = array_merge($aturan, [
-                'nik' => 'required|digits:16',
-                'no_kk' => 'required|digits:16',
-                'nama' => 'required|string|max:100',
-                'tanggal_lahir' => 'required|date',
-                'jenis_kelamin' => 'required|in:L,P',
-            ]);
-        }
-
         $d = $r->validate($aturan);
-
-        // Pastikan NIK masyarakat baru belum digunakan.
-        if (!$penerimaAwal) {
-            $hashNik = hash_hmac('sha256', $d['nik'], config('app.key'));
-
-            if (Penerima::where('nik_hash', $hashNik)->exists()) {
-                return back()
-                    ->withErrors(['nik' => 'NIK sudah terdaftar.'])
-                    ->withInput();
-            }
-        }
 
         $files = [
             'dokumen_ktp' => [
@@ -146,14 +154,7 @@ class PengajuanController extends Controller
         $storedPaths = [];
 
         try {
-            $pengajuan = DB::transaction(function () use (
-                $r,
-                $d,
-                $idUser,
-                $penerimaAwal,
-                $files,
-                &$storedPaths
-            ) {
+            $pengajuan = DB::transaction(function () use ($r, $d, $idUser, $penerimaAwal, $files, &$storedPaths) {
                 // Kunci akun agar dua pengajuan bersamaan tidak lolos.
                 \App\Models\User::where('id_user', $idUser)
                     ->lockForUpdate()
@@ -186,13 +187,17 @@ class PengajuanController extends Controller
                     }
                 }
 
-                // Cegah pengajuan bersamaan pada program lain.
+                // Cegah pengajuan ganda yang masih menunggu verifikasi.
                 if ($penerima) {
+                    $statusPenghalang = $penerima->status === 'nonaktif'
+                        ? ['diajukan']
+                        : ['diajukan', 'terverifikasi'];
+
                     $masihAktif = PengajuanBantuan::where(
                         'id_penerima',
                         $penerima->id_penerima
                     )
-                        ->whereIn('status', ['diajukan', 'terverifikasi'])
+                        ->whereIn('status', $statusPenghalang)
                         ->exists();
 
                     if ($masihAktif) {
@@ -202,45 +207,17 @@ class PengajuanController extends Controller
                     }
                 }
 
-                // Data identitas hanya dibuat untuk masyarakat baru.
+                // Pastikan profil penerima masih tersedia setelah akun dikunci.
                 if (!$penerima) {
-                    $hashNik = hash_hmac('sha256', $d['nik'], config('app.key'));
+                    throw new \RuntimeException(
+                        'Profil penerima tidak ditemukan. Silakan hubungi admin.'
+                    );
+                }
 
-                    if (Penerima::where('nik_hash', $hashNik)->exists()) {
-                        throw \Illuminate\Validation\ValidationException::withMessages([
-                            'nik' => 'NIK sudah terdaftar.',
-                        ]);
-                    }
-
-                    $penerima = Penerima::create([
-                        'nik' => encrypt($d['nik']),
-                        'nik_hash' => $hashNik,
-                        'no_kk' => encrypt($d['no_kk']),
-                        'nama' => $d['nama'],
-                        'tanggal_lahir' => $d['tanggal_lahir'],
-                        'jenis_kelamin' => $d['jenis_kelamin'],
-                        'id_user' => $idUser,
-                        'status' => 'diajukan',
-                        'nomor_whatsapp' => $d['nomor_whatsapp'],
-                        'alamat' => $d['alamat'],
-                        'id_wilayah' => $d['id_wilayah'],
-                        'penghasilan_bulanan' => $d['penghasilan_bulanan'],
-                        'jumlah_tanggungan' => $d['jumlah_tanggungan'],
-                        'kondisi_rumah' => $d['kondisi_rumah'],
-                        'disabilitas' => $r->boolean('disabilitas'),
-                        'lansia' => $r->boolean('lansia'),
-                    ]);
-                } else {
-                    // Perbarui data profil yang boleh berubah.
-                    $penerima->update([
-                        'nomor_whatsapp' => $d['nomor_whatsapp'],
-                        'alamat' => $d['alamat'],
-                        'id_wilayah' => $d['id_wilayah'],
-                        'penghasilan_bulanan' => $d['penghasilan_bulanan'],
-                        'jumlah_tanggungan' => $d['jumlah_tanggungan'],
-                        'kondisi_rumah' => $d['kondisi_rumah'],
-                        'disabilitas' => $r->boolean('disabilitas'),
-                        'lansia' => $r->boolean('lansia'),
+                // Pastikan status profil belum berubah selama proses berlangsung.
+                if (!in_array($penerima->status, ['terverifikasi', 'nonaktif'], true)) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'id_jenis' => 'Profil Anda harus diverifikasi admin sebelum dapat mengajukan bantuan.',
                     ]);
                 }
 
@@ -274,7 +251,7 @@ class PengajuanController extends Controller
                 foreach ($files as $field => $config) {
                     $file = $r->file($field);
 
-                    $path = $file->store('dokumen-penerima', 'public');
+                    $path = $file->store('dokumen-penerima', 'local');
 
                     if (!$path) {
                         throw new \RuntimeException(
@@ -306,7 +283,7 @@ class PengajuanController extends Controller
                 return $pengajuan;
             });
         } catch (Throwable $e) {
-            Storage::disk('public')->delete($storedPaths);
+            Storage::disk('local')->delete($storedPaths);
             throw $e;
         }
 
@@ -330,29 +307,24 @@ class PengajuanController extends Controller
             );
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $q = PengajuanBantuan::with([
-            'penerima',
-            'jenisBantuan',
-            'dokumen',
-        ])->where('status', 'diajukan');
-
-        // Batasi antrean sesuai wilayah admin.
+        // Tentukan cakupan wilayah admin.
         $idWilayahAdmin = auth()->user()->id_wilayah;
+        $wilayahIds = $idWilayahAdmin
+            ? WilayahScope::ids($idWilayahAdmin)
+            : null;
 
-        if ($idWilayahAdmin) {
-            $wilayahIds = WilayahScope::ids($idWilayahAdmin);
+        // Query dasar untuk semua status pengajuan.
+        $queryDasar = PengajuanBantuan::query();
 
-            $q->where(function ($query) use ($wilayahIds) {
-                // Pengajuan baru menggunakan wilayah dari snapshot.
+        if ($wilayahIds !== null) {
+            $queryDasar->where(function ($query) use ($wilayahIds) {
                 $query->whereIn(
                     'data_penerima->id_wilayah',
                     $wilayahIds
                 );
 
-                // Pengajuan lama yang belum memiliki snapshot
-                // menggunakan wilayah dari profil penerima.
                 $query->orWhere(function ($legacy) use ($wilayahIds) {
                     $legacy->whereNull('data_penerima')
                         ->whereHas('penerima', function ($penerima) use ($wilayahIds) {
@@ -365,12 +337,57 @@ class PengajuanController extends Controller
             });
         }
 
-        $pengajuan = $q
-            ->latest('created_at')
-            ->paginate(10);
+        // Ringkasan jumlah pengajuan sesuai cakupan admin.
+        $totalMenunggu = (clone $queryDasar)
+            ->where('status', 'diajukan')
+            ->count();
 
-        return view('admin.pengajuan.index', compact('pengajuan'));
+        $totalTerverifikasi = (clone $queryDasar)
+            ->where('status', 'terverifikasi')
+            ->count();
+
+        $totalDitolak = (clone $queryDasar)
+            ->where('status', 'ditolak')
+            ->count();
+
+        // Daftar pengajuan yang masih menunggu verifikasi.
+        $pengajuan = (clone $queryDasar)
+            ->with([
+                'penerima',
+                'jenisBantuan',
+                'dokumen',
+            ])
+            ->where('status', 'diajukan')
+            ->orderBy('created_at')
+            ->orderBy('id_pengajuan')
+            ->paginate(10)
+            ->withQueryString();
+
+        $pilihan = null;
+
+        if ($request->filled('pilih')) {
+            $pilihan = (clone $queryDasar)
+                ->with([
+                    'penerima',
+                    'jenisBantuan',
+                    'dokumen',
+                ])
+                ->where('status', 'diajukan')
+                ->where('id_pengajuan', $request->input('pilih'))
+                ->first();
+        }
+
+        $pilihan = $pilihan ?? $pengajuan->first();
+
+        return view('admin.pengajuan.index', compact(
+            'pengajuan',
+            'totalMenunggu',
+            'totalTerverifikasi',
+            'totalDitolak',
+            'pilihan'
+        ));
     }
+
 
     public function verifikasi(PengajuanBantuan $pengajuan)
     {
@@ -486,11 +503,57 @@ class PengajuanController extends Controller
         $p = Penerima::with([
             'riwayat.jenis.kategori',
             'pengajuanBantuan.jenisBantuan',
+            'pengajuanBantuan.dokumen',
         ])
             ->where('id_user', auth()->user()->id_user)
             ->first();
 
         return view('masyarakat.status', compact('p'));
+    }
+
+    public function showDocument($pengajuanId, $dokumenId)
+    {
+        // Ambil pengajuan beserta data penerimanya.
+        $pengajuan = PengajuanBantuan::with('penerima')
+            ->findOrFail($pengajuanId);
+
+        // Pastikan pengajuan berada dalam wilayah tugas admin.
+        $this->scope($pengajuan);
+
+        // Ambil dokumen yang benar-benar terhubung
+        // dengan pengajuan yang diminta.
+        $dokumen = DokumenPendukung::where(
+            'id_dokumen',
+            $dokumenId
+        )
+            ->where('id_pengajuan', $pengajuan->id_pengajuan)
+            ->firstOrFail();
+
+        // Pastikan file tersedia di penyimpanan privat.
+        $disk = Storage::disk('local');
+
+        abort_unless(
+            $dokumen->path_file &&
+            $disk->exists($dokumen->path_file),
+            404,
+            'Dokumen tidak ditemukan.'
+        );
+
+        // Tentukan tipe file.
+        $mimeType = $disk->mimeType($dokumen->path_file)
+            ?: 'application/octet-stream';
+
+        // Tampilkan dokumen secara inline.
+        return $disk->response(
+            $dokumen->path_file,
+            basename($dokumen->nama_file),
+            [
+                'Content-Type' => $mimeType,
+                'X-Content-Type-Options' => 'nosniff',
+                'Cache-Control' => 'private, no-store, max-age=0',
+            ],
+            'inline'
+        );
     }
 
     private function scope(PengajuanBantuan $pengajuan)
@@ -504,7 +567,7 @@ class PengajuanController extends Controller
 
         $wilayahIds = collect(
             WilayahScope::ids($idWilayahAdmin)
-        )->map(fn ($id) => (int) $id);
+        )->map(fn($id) => (int) $id);
 
         // Utamakan wilayah yang tersimpan dalam snapshot pengajuan.
         $idWilayahPengajuan = data_get(
@@ -539,3 +602,4 @@ class PengajuanController extends Controller
         ]);
     }
 }
+

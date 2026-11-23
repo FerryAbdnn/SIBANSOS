@@ -1,11 +1,13 @@
+
+@php
+    $user = auth()->user();
+@endphp
+
 <aside class="sidebar">
-    <a href="{{ route('dashboard') }}" class="brand">
-        <span class="brand-mark">S</span>
-        <span>
-            <b>SIBANSOS</b>
-            <small>Sistem Pendataan Bantuan Sosial</small>
-        </span>
-    </a>
+    @include('components.brand-logo', [
+        'href' => route('dashboard'),
+        'class' => 'brand'
+    ])
 
     <div class="side-label">OPERASIONAL</div>
 
@@ -40,6 +42,11 @@
         <span>▣</span> Jenis Bantuan
     </a>
 
+    <a href="{{ route('admin.wilayah.index') }}"
+        class="menu-link {{ request()->routeIs('admin.wilayah.*') ? 'active' : '' }}">
+        <span>⌖</span> Manajemen Wilayah
+    </a>
+
     <a href="{{ route('admin.perbaikan.index') }}"
         class="menu-link {{ request()->routeIs('admin.perbaikan.*') ? 'active' : '' }}">
         <span>✎</span> Perbaikan Data
@@ -47,18 +54,19 @@
 
     <div class="side-label">SISTEM</div>
 
-    <a href="{{ route('profile') }}" class="menu-link {{ request()->routeIs('profile') ? 'active' : '' }}">
+    <a href="{{ route('profile') }}"
+        class="menu-link {{ request()->routeIs('profile') ? 'active' : '' }}">
         <span>♙</span> Profil
     </a>
 
     <div class="sidebar-bottom">
         <div class="user-chip">
             <div class="avatar">
-                {{ strtoupper(substr(auth()->user()->nama, 0, 1)) }}
+                {{ strtoupper(substr($user->nama ?? 'A', 0, 1)) }}
             </div>
             <div>
-                <b>{{ auth()->user()->nama }}</b>
-                <small>Administrator</small>
+                <b>{{ $user->nama ?? 'Administrator' }}</b>
+                <small>{{ ucfirst($user->peran ?? 'admin') }}</small>
             </div>
         </div>
 
